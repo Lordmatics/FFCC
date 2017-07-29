@@ -19,6 +19,25 @@ class AFFCCCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USphereComponent* InteractSphere;
+
+	UFUNCTION()
+		void OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex);
+
+	UFUNCTION()
+		void BeginInteract();
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		class ULookAtComponent* CurrentLookAtTarget;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		uint32 bInInteractRange : 1;
+
 public:
 	AFFCCCharacter();
 

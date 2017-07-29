@@ -1,16 +1,17 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
 #include "FFCCCharacter.h"
-#include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EngineUtils.h"
 #include "FFCC/Camera/CameraFollow.h"
 #include "Classes/GameFramework/PlayerController.h"
+#include "FFCC/CustomComponents/LookAt/LookAtComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFFCCCharacter
@@ -46,6 +47,12 @@ AFFCCCharacter::AFFCCCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	InteractSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractCollisionSphere"));
+	InteractSphere->SetupAttachment(GetCapsuleComponent());
+	InteractSphere->SetCollisionProfileName(FName(TEXT("Interact")));
+	InteractSphere->SetSphereRadius(100.0f);
+	InteractSphere->OnComponentBeginOverlap.AddDynamic(this, &AFFCCCharacter::OnOverlapEnter);
+	InteractSphere->OnComponentEndOverlap.AddDynamic(this, &AFFCCCharacter::OnOverlapExit);
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -79,6 +86,9 @@ void AFFCCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFFCCCharacter::BeginInteract);
+
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFFCCCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFFCCCharacter::MoveRight);
@@ -131,4 +141,44 @@ void AFFCCCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor) return;
+	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
+
+	CurrentLookAtTarget = Cast<ULookAtComponent>(OtherActor->GetComponentByClass(ULookAtComponent::StaticClass()));
+	if (CurrentLookAtTarget)
+	{
+		bInInteractRange = true;
+	}	
+}
+
+void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex)
+{
+	if (!OtherActor) return;
+	UE_LOG(LogTemp, Warning, TEXT("Overlapped-EXIT"));
+
+	CurrentLookAtTarget = Cast<ULookAtComponent>(OtherActor->GetComponentByClass(ULookAtComponent::StaticClass()));
+
+	if (CurrentLookAtTarget)
+	{
+		// WARNING: Need to Check Trigger has not overlap something else before you exit first encounter
+		CurrentLookAtTarget->SetLookingAtTarget(nullptr);
+		CurrentLookAtTarget->SetLookingAtTarget(false);
+		CurrentLookAtTarget = nullptr;
+		bInInteractRange = false;
+	}
+}
+
+void AFFCCCharacter::BeginInteract()
+{
+	if (CurrentLookAtTarget && bInInteractRange)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Interact Pressed SUCCESS"));
+		CurrentLookAtTarget->SetLookingAtTarget(this);
+		CurrentLookAtTarget->SetLookingAtTarget(true);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Interact Pressed"));
 }

@@ -94,6 +94,42 @@ struct FCharacterStats
 		Gender = Gdr;
 	}
 };
+
+USTRUCT(BlueprintType)
+struct FNPCStats
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player TRB")
+		ECharacterTribe Tribe;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player TRD")
+		ECharacterTrade Trade;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player GDR")
+		ECharacterGender Gender;
+
+	FNPCStats()
+	{
+		Tribe = ECharacterTribe::E_Clavat;
+		Trade = ECharacterTrade::E_Alchemist;
+		Gender = ECharacterGender::E_Male;
+	}
+
+	FNPCStats(const FNPCStats& Other)
+	{
+		Tribe = Other.Tribe;
+		Trade = Other.Trade;
+		Gender = Other.Gender;
+	}
+
+	FNPCStats(ECharacterTribe Trb, ECharacterTrade Trd, ECharacterGender Gdr)
+	{
+		Tribe = Trb;
+		Trade = Trd;
+		Gender = Gdr;
+	}
+};
 /**
  * 
  */
