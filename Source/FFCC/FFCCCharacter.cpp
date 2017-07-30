@@ -75,6 +75,11 @@ AFFCCCharacter::AFFCCCharacter()
 	ShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("ShopComponent"));
 	bShowMerchantStock = false;
 	bShowPlayerStock = false;
+	MerchantHierarchy = 0;
+
+	LookAtComp = CreateDefaultSubobject<ULookAtComponent>(TEXT("LookAtComponent"));
+	MerchantLevel = 1;
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -107,6 +112,11 @@ void AFFCCCharacter::BeginPlay()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
+void AFFCCCharacter::UpgradeMerchantLevel()
+{
+	MerchantLevel++;
+}
+
 void AFFCCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up gameplay key bindings
@@ -118,6 +128,9 @@ void AFFCCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("ShopUp", IE_Pressed, this, &AFFCCCharacter::ShopUp);
 	PlayerInputComponent->BindAction("ShopDown", IE_Pressed, this, &AFFCCCharacter::ShopDown);
 	PlayerInputComponent->BindAction("ShopSelect", IE_Pressed, this, &AFFCCCharacter::ShopSelect);
+	PlayerInputComponent->BindAction("ShopBack", IE_Pressed, this, &AFFCCCharacter::ShopBack);
+
+	PlayerInputComponent->BindAction("DebugML", IE_Pressed, this, &AFFCCCharacter::UpgradeMerchantLevel);
 
 
 
@@ -147,6 +160,8 @@ void AFFCCCharacter::LookUpAtRate(float Rate)
 
 void AFFCCCharacter::MoveForward(float Value)
 {
+	if (bShowChat || bInAShop) return;
+
 	if ((Controller != NULL) && (Value != 0.0f))
 	{
 		// find out which way is forward
@@ -161,6 +176,8 @@ void AFFCCCharacter::MoveForward(float Value)
 
 void AFFCCCharacter::MoveRight(float Value)
 {
+	if (bShowChat || bInAShop) return;
+
 	if ( (Controller != NULL) && (Value != 0.0f) )
 	{
 		// find out which way is right
@@ -178,6 +195,8 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 {
 	if (!OtherActor) return;
 	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
+
+	CurrentTargetActor = OtherActor;
 
 	CurrentLookAtTarget = Cast<ULookAtComponent>(OtherActor->GetComponentByClass(ULookAtComponent::StaticClass()));
 	if (CurrentLookAtTarget)
@@ -264,11 +283,24 @@ void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* 
 		CurrentDialogueComponent = nullptr;
 	}
 
+	CurrentTargetActor = nullptr;
 	MenuReset();
 }
 
 void AFFCCCharacter::BeginInteract()
 {
+	if (LookAtComp)
+	{
+		// TODO: Smooth this out
+		FRotator NewRotation;  LookAtComp->GetRotationToLookAt(GetActorLocation(), CurrentTargetActor->GetActorLocation(), NewRotation);
+		//FRotator CurRot = GetActorRotation();
+		//while (CurRot != NewRotation)
+		//{
+			//CurRot = FMath::RInterpTo(CurRot, NewRotation, GetWorld()->GetDeltaSeconds(), 5.0f);
+			SetActorRotation(NewRotation);
+		//}
+	}
+
 	if (CurrentLookAtTarget && bInInteractRange)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Target now looking at player"));
@@ -365,8 +397,12 @@ bool AFFCCCharacter::ShouldShowChat() const
 
 void AFFCCCharacter::OpenMerchantShop()
 {
+	MerchantHierarchy++;
 	bShowMerchantShop = true;
 	bInAShop = true;
+	UE_LOG(LogTemp, Warning, TEXT("OpenMerchantShop"));
+	UE_LOG(LogTemp, Warning, TEXT("OpenMerchantShop: %s"), bShowMerchantShop ? TEXT("True") : TEXT("False"));
+	UE_LOG(LogTemp, Warning, TEXT("OpenMerchantShop: %s"), bInAShop ? TEXT("True") : TEXT("False"));
 }
 
 void AFFCCCharacter::OpenTailorShop()
@@ -407,9 +443,36 @@ void AFFCCCharacter::ShopDown()
 	}
 }
 
+int AFFCCCharacter::GetMaxShopIndex() const
+{
+	switch (MerchantLevel)
+	{
+	case 1:
+	{
+		return 7;
+	}
+	case 2:
+	{
+		return 12;
+	}
+	case 3:
+	{
+		return 15;
+	}
+	case 4:
+	{
+		return 17;
+	}
+	default:
+		return 7;
+	}
+}
+
 void AFFCCCharacter::ShopSelect()
 {
 	if (!bInAShop) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("ShopSelect"));
 
 	if (bShowMerchantShop)
 	{
@@ -418,12 +481,15 @@ void AFFCCCharacter::ShopSelect()
 			// Buy
 			bShowMerchantShop = false;
 			bShowMerchantStock = true;
+			MaxShopItemIndex = GetMaxShopIndex();
+			MerchantHierarchy++;
 		}
 		else if (ShopItemIndex == 1)
 		{
 			// Sell
 			bShowMerchantShop = false;
 			bShowPlayerStock = true;
+			MerchantHierarchy++;
 		}
 	}
 	else if (bShowBlacksmithShop)
@@ -434,6 +500,37 @@ void AFFCCCharacter::ShopSelect()
 	{
 
 	}
+}
+
+void AFFCCCharacter::ShopBack()
+{
+	switch (TradeFlags)
+	{
+	case Flags::E_Merchant:
+		{
+			CloseMerchantShop();
+			break;
+		}
+	case Flags::E_Blacksmith:
+		{
+			CloseBlacksmithShop();
+			break;
+		}
+	case Flags::E_Tailor:
+		{
+			CloseTailorShop();
+			break;
+		}
+	case Flags::E_Alchemist:
+		{
+			break;
+		}
+	default:
+		{
+			break;
+		}
+	}
+
 }
 
 void AFFCCCharacter::MenuReset()
@@ -450,5 +547,49 @@ void AFFCCCharacter::MenuReset()
 	bShowMerchantStock = false;
 
 	ShopItemIndex = 0;
+	MerchantHierarchy = 0;
 	
 }
+
+void AFFCCCharacter::CloseMerchantShop()
+{
+	MerchantHierarchy--;
+	if (MerchantHierarchy == 0)
+	{
+		InteractIndexInDialogue = 0;
+		//TradeFlags = Flags::E_Other;
+		bShowMerchantShop = false;
+		bShowMerchantStock = false;
+		bShowChat = false;
+		bInAShop = false;
+
+		ShopItemIndex = 0;
+		MerchantHierarchy = 0;
+		UE_LOG(LogTemp, Warning, TEXT("Back to no menu: %d"), MerchantHierarchy);
+	}
+	else if (MerchantHierarchy == 1)
+	{
+		// Menu to choose buying or selling
+		//OpenMerchantShop();
+		bShowMerchantShop = true; // Show BUY SELL Menu
+		bInAShop = true; // Maybe redundant
+		bShowMerchantStock = false; // Hide List
+		ShopItemIndex = 0;
+		MaxShopItemIndex = 2; // 2 options { BUY , SELL }
+	}
+	else if (MerchantHierarchy == 2)
+	{
+		// Buy and Sell menu, so since there is no menu further up this can be blank
+	}
+}
+
+void AFFCCCharacter::CloseBlacksmithShop()
+{
+
+}
+
+void AFFCCCharacter::CloseTailorShop()
+{
+
+}
+

@@ -28,7 +28,7 @@ enum class EMaterialType : uint8
 	E_DevilsClaw,
 	E_DiamondOre,
 	E_DragonFang,
-	E_DweomerSphere,
+	E_DweomerSpore,
 	E_EtherealOrb,
 	E_FaeriesTear,
 	E_FiendsClaw,

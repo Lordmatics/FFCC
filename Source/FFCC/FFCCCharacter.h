@@ -53,10 +53,22 @@ class AFFCCCharacter : public ACharacter
 	UFUNCTION()
 		void ShopSelect();
 
+	UFUNCTION()
+		void ShopBack();
+
 	void OpenMerchantShop();
 	void OpenTailorShop();
 	void OpenBlacksmithShop();
 	void AlchemistDrop();
+	void CloseMerchantShop();
+	void CloseTailorShop();
+	void CloseBlacksmithShop();
+
+	UPROPERTY()
+		AActor* CurrentTargetActor;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		class ULookAtComponent* LookAtComp;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		class ULookAtComponent* CurrentLookAtTarget;
@@ -97,6 +109,14 @@ class AFFCCCharacter : public ACharacter
 	FString EmptyString;
 	FString QMString;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		int MerchantLevel;
+
+	int GetMaxShopIndex() const;
+
+	UFUNCTION()
+		void UpgradeMerchantLevel();
+
 
 	enum Flags
 	{
@@ -109,6 +129,7 @@ class AFFCCCharacter : public ACharacter
 
 	Flags TradeFlags;
 
+	int MerchantHierarchy;
 	void MenuReset();
 
 public:
