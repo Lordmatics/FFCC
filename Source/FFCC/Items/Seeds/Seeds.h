@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Items/Item.h"
 #include "FFCC/Items/ItemTypeEnum.h"
 #include "Seeds.generated.h"
 
 UCLASS()
-class FFCC_API ASeeds : public AActor
+class FFCC_API ASeeds : public AItem
 {
 	GENERATED_BODY()
 	
