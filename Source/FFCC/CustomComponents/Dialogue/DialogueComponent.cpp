@@ -32,3 +32,29 @@ void UDialogueComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// ...
 }
 
+FString UDialogueComponent::GetNPCName() const
+{
+	if (DialogueData)
+	{
+		return DialogueData->GetDialogueData().NPCName;
+	}
+	return FString(TEXT("???"));
+}
+
+TArray<FString> UDialogueComponent::GetNPCDialogue() const
+{
+	if (DialogueData)
+	{
+		return DialogueData->GetDialogueData().Sentences;
+	}
+	return TArray<FString>();
+}
+
+int UDialogueComponent::GetNPCDialogueLength() const
+{
+	if (DialogueData)
+	{
+		return DialogueData->GetDialogueData().Sentences.Num();
+	}
+	return 0;
+}

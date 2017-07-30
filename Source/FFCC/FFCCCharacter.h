@@ -32,11 +32,84 @@ class AFFCCCharacter : public ACharacter
 	UFUNCTION()
 		void BeginInteract();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		int ShopItemIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		int MaxShopItemIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bShowMerchantStock;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bShowPlayerStock;
+
+	UFUNCTION()
+		void ShopUp();
+
+	UFUNCTION()
+		void ShopDown();
+
+	UFUNCTION()
+		void ShopSelect();
+
+	void OpenMerchantShop();
+	void OpenTailorShop();
+	void OpenBlacksmithShop();
+	void AlchemistDrop();
+
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		class ULookAtComponent* CurrentLookAtTarget;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		class UDialogueComponent* CurrentDialogueComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		class UShopComponent* ShopComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		uint32 bInInteractRange : 1;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		FString InteractTargetName;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		FString InteractTargetCurrentSentence;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		int InteractIndexInDialogue;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		uint32 bShowChat : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bShowMerchantShop;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bShowTailorShop;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bShowBlacksmithShop;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bInAShop;
+
+	FString EmptyString;
+	FString QMString;
+
+
+	enum Flags
+	{
+		E_Merchant = 0,// 0x1 << 0,
+		E_Blacksmith = 1,//0x1 << 1,
+		E_Tailor = 2,//0x1 << 2,
+		E_Alchemist = 3,//0x1 << 3
+		E_Other = 4
+	};
+
+	Flags TradeFlags;
+
+	void MenuReset();
 
 public:
 	AFFCCCharacter();
@@ -51,6 +124,15 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Character Stats")
 		FCharacterStats CharacterStats;
+
+	UFUNCTION(BlueprintCallable, Category = "Dialogue")
+		FString GetTargetName() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Dialogue")
+		FString GetTargetSentence() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Dialogue")
+		bool ShouldShowChat() const;
 
 protected:
 

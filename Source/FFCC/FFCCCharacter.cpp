@@ -12,6 +12,10 @@
 #include "FFCC/Camera/CameraFollow.h"
 #include "Classes/GameFramework/PlayerController.h"
 #include "FFCC/CustomComponents/LookAt/LookAtComponent.h"
+#include "FFCC/CustomComponents/Dialogue/DialogueComponent.h"
+#include "FFCC/CustomComponents/NPCStats/NPCStatsComponent.h"
+#include "FFCC/CustomComponents/Shop/ShopComponent.h"
+#include "FFCC/Debug/Logs.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFFCCCharacter
@@ -53,6 +57,24 @@ AFFCCCharacter::AFFCCCharacter()
 	InteractSphere->SetSphereRadius(100.0f);
 	InteractSphere->OnComponentBeginOverlap.AddDynamic(this, &AFFCCCharacter::OnOverlapEnter);
 	InteractSphere->OnComponentEndOverlap.AddDynamic(this, &AFFCCCharacter::OnOverlapExit);
+
+	EmptyString = FString(TEXT(""));
+	QMString = FString(TEXT("????"));
+
+	InteractIndexInDialogue = 0;
+	InteractTargetCurrentSentence = EmptyString;
+	InteractTargetName = QMString;
+
+	bShowChat = false;
+
+	TradeFlags = Flags::E_Alchemist;
+	ShopItemIndex = 0;
+	MaxShopItemIndex = 2;
+	bInAShop = false;
+
+	ShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("ShopComponent"));
+	bShowMerchantStock = false;
+	bShowPlayerStock = false;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -76,6 +98,11 @@ void AFFCCCharacter::BeginPlay()
 				PC->SetViewTargetWithBlend(temp, 1.0f);
 		}
 	}
+
+	//UE_LOG(GenLog, Warning, TEXT("GenLog"));
+	//UE_LOG(AILog, Warning, TEXT("AILog"));
+	//UE_LOG(PlayerLog, Warning, TEXT("PlayerLog"));
+	//UE_LOG(BadLog, Warning, TEXT("BadLog"));
 }
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -88,6 +115,10 @@ void AFFCCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFFCCCharacter::BeginInteract);
+	PlayerInputComponent->BindAction("ShopUp", IE_Pressed, this, &AFFCCCharacter::ShopUp);
+	PlayerInputComponent->BindAction("ShopDown", IE_Pressed, this, &AFFCCCharacter::ShopDown);
+	PlayerInputComponent->BindAction("ShopSelect", IE_Pressed, this, &AFFCCCharacter::ShopSelect);
+
 
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFFCCCharacter::MoveForward);
@@ -153,6 +184,63 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 	{
 		bInInteractRange = true;
 	}	
+	CurrentDialogueComponent = Cast<UDialogueComponent>(OtherActor->GetComponentByClass(UDialogueComponent::StaticClass()));
+	if (CurrentDialogueComponent)
+	{
+		//TArray<FString> Dialogues = CurrentDialogueComponent->GetNPCDialogue();
+		//int TotalDialogueLength = CurrentDialogueComponent->GetNPCDialogueLength();
+		//InteractTargetName = CurrentDialogueComponent->GetNPCName();
+		//InteractTargetCurrentSentence = Dialogues[InteractIndexInDialogue];
+	}
+
+	UNPCStatsComponent* NPCComp = Cast<UNPCStatsComponent>(OtherActor->GetComponentByClass(UNPCStatsComponent::StaticClass()));
+	if (NPCComp)
+	{
+		FNPCStats NPCStats = NPCComp->GetNPCStats();
+		switch (NPCStats.Trade)
+		{
+			case ECharacterTrade::E_Alchemist: // Gives Scrolls
+			{
+				//TradeFlags &= ~Flags::E_Blacksmith;
+				//TradeFlags &= ~Flags::E_Merchant;
+				//TradeFlags &= ~Flags::E_Tailor;
+				//TradeFlags |= Flags::E_Alchemist;
+				TradeFlags = Flags::E_Alchemist;
+				UE_LOG(LogTemp, Warning, TEXT("TradeFlags (ALC)"));
+				MaxShopItemIndex = 0;
+				break;
+			}
+			case ECharacterTrade::E_Blacksmith: // Open Weapon + Armour Shop
+			{
+				TradeFlags = Flags::E_Blacksmith;
+				UE_LOG(LogTemp, Warning, TEXT("TradeFlags (BLM)"));
+				MaxShopItemIndex = 0;
+				break;
+			}
+			case ECharacterTrade::E_Merchant: // Open Item Shop
+			{
+				TradeFlags = Flags::E_Merchant;
+				UE_LOG(LogTemp, Warning, TEXT("TradeFlags (MER)"));
+				MaxShopItemIndex = 2;
+				break;
+			}
+			case ECharacterTrade::E_Tailor: // Open Accessory Shop
+			{
+				TradeFlags = Flags::E_Tailor;
+				UE_LOG(LogTemp, Warning, TEXT("TradeFlags (TAI)"));
+				MaxShopItemIndex = 0;
+				break;
+			}
+			default:
+			{
+				TradeFlags = Flags::E_Other;
+				UE_LOG(LogTemp, Warning, TEXT("TradeFlags (DEF)"));
+				MaxShopItemIndex = 0;
+				break;
+			}
+		}
+	}
+
 }
 
 void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex)
@@ -170,15 +258,197 @@ void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* 
 		CurrentLookAtTarget = nullptr;
 		bInInteractRange = false;
 	}
+	CurrentDialogueComponent = Cast<UDialogueComponent>(OtherActor->GetComponentByClass(UDialogueComponent::StaticClass()));
+	if (CurrentDialogueComponent)
+	{
+		CurrentDialogueComponent = nullptr;
+	}
+
+	MenuReset();
 }
 
 void AFFCCCharacter::BeginInteract()
 {
 	if (CurrentLookAtTarget && bInInteractRange)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Interact Pressed SUCCESS"));
+		UE_LOG(LogTemp, Warning, TEXT("Target now looking at player"));
 		CurrentLookAtTarget->SetLookingAtTarget(this);
 		CurrentLookAtTarget->SetLookingAtTarget(true);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Interact Pressed"));
+
+	if (CurrentDialogueComponent && bInInteractRange)
+	{
+		//TODO: Unhide Chat Box
+		bShowChat = true;
+		// Initialise conversation
+		TArray<FString> Dialogues = CurrentDialogueComponent->GetNPCDialogue();
+		int TotalDialogueLength = CurrentDialogueComponent->GetNPCDialogueLength();
+		if (InteractIndexInDialogue < TotalDialogueLength)
+		{
+			// UPDATES WHATS DISPLAYED IN CHAT BOX
+			InteractTargetName = CurrentDialogueComponent->GetNPCName();
+			InteractTargetCurrentSentence = Dialogues[InteractIndexInDialogue];
+		}
+
+
+		//int TotalDialogueLength = CurrentDialogueComponent->GetNPCDialogueLength();
+
+		// Proceed through dialogue
+		InteractIndexInDialogue++;
+		if (InteractIndexInDialogue > TotalDialogueLength)
+		{
+			// Go To Conversation End
+			InteractIndexInDialogue = 0;
+			InteractTargetName = QMString;
+			InteractTargetCurrentSentence = EmptyString;
+			// TODO: Hide chat box
+			bShowChat = false;
+			if (CurrentLookAtTarget)
+			{
+				// WARNING: Need to Check Trigger has not overlap something else before you exit first encounter
+				CurrentLookAtTarget->SetLookingAtTarget(nullptr);
+				CurrentLookAtTarget->SetLookingAtTarget(false);
+				CurrentLookAtTarget = nullptr;
+			}
+			// Search for whether a menu should be openned
+			switch (TradeFlags)
+			{
+			case Flags::E_Merchant:
+				{
+					OpenMerchantShop();
+					break;
+				}
+			case Flags::E_Blacksmith:
+				{
+					OpenBlacksmithShop();
+					break;
+				}
+			case Flags::E_Tailor:
+				{
+					OpenTailorShop();
+					break;
+				}
+			case Flags::E_Alchemist:
+				{
+					AlchemistDrop();
+					break;
+				}
+			default:
+				{
+					break;
+				}
+			}
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Conversation GO"));
+
+	}
+
+
+	//UE_LOG(LogTemp, Warning, TEXT("Interact Pressed"));
+}
+
+FString AFFCCCharacter::GetTargetName() const
+{
+	return InteractTargetName;
+}
+
+FString AFFCCCharacter::GetTargetSentence() const
+{
+	return InteractTargetCurrentSentence;
+}
+
+bool AFFCCCharacter::ShouldShowChat() const
+{
+	return bShowChat;
+}
+
+void AFFCCCharacter::OpenMerchantShop()
+{
+	bShowMerchantShop = true;
+	bInAShop = true;
+}
+
+void AFFCCCharacter::OpenTailorShop()
+{
+	bShowTailorShop = true;
+	bInAShop = true;
+}
+
+void AFFCCCharacter::OpenBlacksmithShop()
+{
+	bShowBlacksmithShop = true;
+	bInAShop = true;
+}
+
+void AFFCCCharacter::AlchemistDrop()
+{
+
+}
+
+void AFFCCCharacter::ShopUp()
+{
+	if (!bInAShop) return;
+	ShopItemIndex--;
+	if (ShopItemIndex < 0)
+	{
+		ShopItemIndex = MaxShopItemIndex - 1;
+	}
+}
+
+void AFFCCCharacter::ShopDown()
+{
+	if (!bInAShop) return;
+
+	ShopItemIndex++;
+	if (ShopItemIndex >= MaxShopItemIndex)
+	{
+		ShopItemIndex = 0;
+	}
+}
+
+void AFFCCCharacter::ShopSelect()
+{
+	if (!bInAShop) return;
+
+	if (bShowMerchantShop)
+	{
+		if (ShopItemIndex == 0)
+		{
+			// Buy
+			bShowMerchantShop = false;
+			bShowMerchantStock = true;
+		}
+		else if (ShopItemIndex == 1)
+		{
+			// Sell
+			bShowMerchantShop = false;
+			bShowPlayerStock = true;
+		}
+	}
+	else if (bShowBlacksmithShop)
+	{
+
+	}
+	else if (bShowTailorShop)
+	{
+
+	}
+}
+
+void AFFCCCharacter::MenuReset()
+{
+	// Go To Conversation End
+	InteractIndexInDialogue = 0;
+	InteractTargetName = QMString;
+	InteractTargetCurrentSentence = EmptyString;
+	// TODO: Hide chat box
+	bShowChat = false;
+
+	TradeFlags = Flags::E_Other;
+	bShowMerchantShop = false;
+	bShowMerchantStock = false;
+
+	ShopItemIndex = 0;
+	
 }

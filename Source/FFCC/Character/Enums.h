@@ -101,10 +101,10 @@ struct FNPCStats
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player TRB")
-		ECharacterTribe Tribe;
+		ECharacterTribe Tribe; // Race
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player TRD")
-		ECharacterTrade Trade;
+		ECharacterTrade Trade; // Job
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player GDR")
 		ECharacterGender Gender;

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "FFCC/Character/Enums.h"
 #include "NPC.generated.h"
 
 UCLASS()
@@ -15,13 +14,13 @@ class FFCC_API ANPC : public ACharacter
 private:
 
 	UPROPERTY(EditAnywhere, Category = "NPC")
-		FNPCStats NPCStats;
-
-	UPROPERTY(EditAnywhere, Category = "NPC")
 		class UDialogueComponent* DialogueComp;
 
 	UPROPERTY(EditAnywhere, Category = "NPC")
 		class ULookAtComponent* LookAtComp;
+
+	UPROPERTY(EditAnywhere, Category = "NPC")
+		class UNPCStatsComponent* NPCStatsComp;
 
 	UPROPERTY(EditAnywhere, Category = "NPC")
 		AActor* DebugTarget;

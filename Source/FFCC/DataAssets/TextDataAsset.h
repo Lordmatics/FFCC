@@ -42,11 +42,6 @@ private:
 	
 public:
 
-	/** Utility Functions*/
-	FORCEINLINE int GetArrayLength() const { return Dialogues.Sentences.Num(); }
+	FORCEINLINE FDialogueData GetDialogueData() const { return Dialogues; }
 
-	FORCEINLINE TArray<FString> GetSentences() const
-	{
-		return Dialogues.Sentences;
-	}	
 };

@@ -7,6 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "FFCC/CustomComponents/Dialogue/DialogueComponent.h"
 #include "FFCC/CustomComponents/LookAt/LookAtComponent.h"
+#include "FFCC/CustomComponents/NPCStats/NPCStatsComponent.h"
 
 // Sets default values
 ANPC::ANPC()
@@ -17,10 +18,9 @@ ANPC::ANPC()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	NPCStats = FNPCStats();
-
 	DialogueComp = CreateDefaultSubobject<UDialogueComponent>(TEXT("DialogueComponent"));
 	LookAtComp = CreateDefaultSubobject<ULookAtComponent>(TEXT("LookAtComponent"));
+	NPCStatsComp = CreateDefaultSubobject<UNPCStatsComponent>(TEXT("NPCStatsComponent"));
 
 }
 
@@ -61,6 +61,5 @@ void ANPC::LookAtTarget(float DeltaTime)
 				SetActorRotation(MyRot);
 			}
 		}
-
 	}
 }
