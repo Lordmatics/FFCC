@@ -23,3 +23,9 @@ void AFood::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void AFood::OnPickedUp()
+{
+	Super::OnPickedUp();
+
+}

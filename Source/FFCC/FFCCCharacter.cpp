@@ -15,6 +15,7 @@
 #include "FFCC/CustomComponents/Dialogue/DialogueComponent.h"
 #include "FFCC/CustomComponents/NPCStats/NPCStatsComponent.h"
 #include "FFCC/CustomComponents/Shop/ShopComponent.h"
+#include "FFCC/CustomComponents/Pickupables/PickupComponent.h"
 #include "FFCC/Debug/Logs.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,7 +212,11 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 		//InteractTargetName = CurrentDialogueComponent->GetNPCName();
 		//InteractTargetCurrentSentence = Dialogues[InteractIndexInDialogue];
 	}
+	CurrentPickupComponent = Cast<UPickupComponent>(OtherActor->GetComponentByClass(UPickupComponent::StaticClass()));
+	if (CurrentPickupComponent)
+	{
 
+	}
 	UNPCStatsComponent* NPCComp = Cast<UNPCStatsComponent>(OtherActor->GetComponentByClass(UNPCStatsComponent::StaticClass()));
 	if (NPCComp)
 	{
@@ -283,13 +288,18 @@ void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* 
 		CurrentDialogueComponent = nullptr;
 	}
 
+	CurrentPickupComponent = Cast<UPickupComponent>(OtherActor->GetComponentByClass(UPickupComponent::StaticClass()));
+	if (CurrentPickupComponent)
+	{
+		CurrentPickupComponent = nullptr;
+	}
 	CurrentTargetActor = nullptr;
 	MenuReset();
 }
 
 void AFFCCCharacter::BeginInteract()
 {
-	if (LookAtComp)
+	if (LookAtComp && CurrentTargetActor)
 	{
 		// TODO: Smooth this out
 		FRotator NewRotation;  LookAtComp->GetRotationToLookAt(GetActorLocation(), CurrentTargetActor->GetActorLocation(), NewRotation);
@@ -308,6 +318,16 @@ void AFFCCCharacter::BeginInteract()
 		CurrentLookAtTarget->SetLookingAtTarget(true);
 	}
 
+	if (CurrentPickupComponent)
+	{
+		// Play pickup animation
+		// Wait for anim to be nearly finished
+		// Kill target
+		if (CurrentPickupComponent->OnPickedUp.IsBound())
+		{
+			CurrentPickupComponent->OnPickedUp.Broadcast(); // consider add to inventory here?
+		}
+	}
 	if (CurrentDialogueComponent && bInInteractRange)
 	{
 		//TODO: Unhide Chat Box

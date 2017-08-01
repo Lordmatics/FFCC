@@ -29,4 +29,7 @@ protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
+	UFUNCTION()
+		virtual void OnPickedUp() override;
+
 };

@@ -25,3 +25,8 @@ void ASeeds::Tick(float DeltaTime)
 
 }
 
+void ASeeds::OnPickedUp()
+{
+	Super::OnPickedUp();
+
+}

@@ -12,16 +12,22 @@ class FFCC_API AItem : public AActor
 	GENERATED_BODY()
 	
 private:
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(VisibleDefaultsOnly, Category = "Item")
 		class USceneComponent* MyRoot;
 
 public:	
 	// Sets default values for this actor's properties
 	AItem();
 
+	UPROPERTY(VisibleDefaultsOnly, Category = "Item")
+		class UPickupComponent* PickupableComp;
+
 protected:
 	
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(VisibleDefaultsOnly, Category = "Item")
+		class USphereComponent* MyCollision;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Item")
 		class UStaticMeshComponent* MyItem;
 
 	// Called when the game starts or when spawned
@@ -30,6 +36,8 @@ protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+		virtual void OnPickedUp();
 	
 	
 };

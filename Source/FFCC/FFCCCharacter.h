@@ -77,6 +77,9 @@ class AFFCCCharacter : public ACharacter
 		class UDialogueComponent* CurrentDialogueComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+		class UPickupComponent* CurrentPickupComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		class UShopComponent* ShopComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")

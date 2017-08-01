@@ -3,6 +3,8 @@
 #include "Item.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
+#include "FFCC/CustomComponents/Pickupables/PickupComponent.h"
 
 // Sets default values
 AItem::AItem()
@@ -13,8 +15,20 @@ AItem::AItem()
 	MyRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MyRoot"));
 	RootComponent = MyRoot;
 
+
+
+	MyCollision = CreateDefaultSubobject<USphereComponent>(TEXT("MyCollision"));
+	MyCollision->SetupAttachment(MyRoot);
+	MyCollision->SetSphereRadius(25.0f);
+	MyCollision->SetCollisionProfileName(FName(TEXT("Interact")));
+
 	MyItem = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MyItem"));
-	MyItem->SetupAttachment(MyRoot);
+	MyItem->SetupAttachment(MyCollision);
+	MyItem->SetCollisionProfileName(FName(TEXT("Item")));
+	MyItem->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+
+	PickupableComp = CreateDefaultSubobject<UPickupComponent>(TEXT("Pickupable"));
+	PickupableComp->OnPickedUp.AddDynamic(this, &AItem::OnPickedUp);
 }
 
 // Called when the game starts or when spawned
@@ -31,3 +45,7 @@ void AItem::Tick(float DeltaTime)
 
 }
 
+void AItem::OnPickedUp()
+{
+	Destroy();
+}

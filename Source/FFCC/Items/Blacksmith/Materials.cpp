@@ -23,4 +23,8 @@ void AMaterials::Tick(float DeltaTime)
 
 }
 
+void AMaterials::OnPickedUp()
+{
+	Super::OnPickedUp();
+}
 
