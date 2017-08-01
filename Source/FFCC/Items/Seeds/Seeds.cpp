@@ -11,11 +11,20 @@ ASeeds::ASeeds()
 
 }
 
+void ASeeds::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	UItemTypeEnum::InitSeed(SeedType, ItemName, ItemBuyValue, ItemSellValue);
+
+}
+
 // Called when the game starts or when spawned
 void ASeeds::BeginPlay()
 {
 	Super::BeginPlay();
 	
+
 }
 
 // Called every frame

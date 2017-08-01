@@ -31,6 +31,11 @@ AItem::AItem()
 	PickupableComp->OnPickedUp.AddDynamic(this, &AItem::OnPickedUp);
 }
 
+void AItem::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
+
 // Called when the game starts or when spawned
 void AItem::BeginPlay()
 {

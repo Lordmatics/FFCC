@@ -79,7 +79,7 @@ class AFFCCCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		class UPickupComponent* CurrentPickupComponent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Interact Target Debug")
 		class UShopComponent* ShopComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")

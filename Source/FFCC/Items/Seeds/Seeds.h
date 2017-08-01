@@ -19,6 +19,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Item")
 		ESeedType SeedType;
 protected:
+	virtual void PostInitializeComponents() override;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 

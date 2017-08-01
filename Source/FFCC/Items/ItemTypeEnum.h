@@ -105,7 +105,12 @@ class FFCC_API UItemTypeEnum : public UObject
 {
 	GENERATED_BODY()
 	
-	
+public:
+
+	static void InitSeed(const ESeedType Type, FString& String, int& Buy, int& Sell);
+	static void InitFood(const EFoodType Type, FString& String, int& Buy, int& Sell);
+	static void InitMaterial(const EMaterialType Type, FString& String, int& Buy, int& Sell);
+
 	
 	
 };

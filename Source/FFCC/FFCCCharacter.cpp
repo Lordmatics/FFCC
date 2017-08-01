@@ -16,6 +16,8 @@
 #include "FFCC/CustomComponents/NPCStats/NPCStatsComponent.h"
 #include "FFCC/CustomComponents/Shop/ShopComponent.h"
 #include "FFCC/CustomComponents/Pickupables/PickupComponent.h"
+#include "FFCC/NPC/NPC.h"
+#include "FFCC/DataAssets/Merchant/Home/MerchShopDataAsset.h"
 #include "FFCC/Debug/Logs.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -265,6 +267,19 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 		}
 	}
 
+	// If Overlap is type safe
+	ANPC* NPC = Cast<ANPC>(OtherActor);
+	if (NPC)
+	{
+		// If is a merchant
+		UMerchShopDataAsset* MerchData = Cast<UMerchShopDataAsset>(NPC->GetData()); // VTable points to correct version of data
+		if (MerchData && ShopComponent)
+		{
+			// Potential optimise here. Store locally, then push to UMG when enter shop.
+			// Maybe improve things since UMG checks per frame
+			ShopComponent->SetMerchantStock(*MerchData); // Pass by address for efficiency
+		}
+	}
 }
 
 void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex)

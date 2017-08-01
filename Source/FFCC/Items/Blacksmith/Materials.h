@@ -23,6 +23,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Item")
 		EMaterialType MaterialType;
 protected:
+	virtual void PostInitializeComponents() override;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
