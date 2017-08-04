@@ -741,6 +741,16 @@ int AFFCCCharacter::GetItemBuyValueAtIndex(int Index)
 	return ReturnValue;
 }
 
+UTexture2D* AFFCCCharacter::GetItemIconAtIndex(int Index)
+{
+	UTexture2D* ReturnValue = nullptr;
+	if (!InventoryData) return ReturnValue;
+	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
+	if (Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetItemDataList()[Index].ItemIcon;
+	return ReturnValue;
+}
+
 FString AFFCCCharacter::GetMerchNameAtRow(int Row)
 {
 	FString ReturnValue = "? ? ? ? ";

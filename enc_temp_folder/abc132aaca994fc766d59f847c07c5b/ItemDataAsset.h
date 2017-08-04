@@ -24,4 +24,5 @@ public:
 
 	FORCEINLINE FItemData GetItemData() { return ItemData; }
 	
+	
 };

@@ -208,9 +208,6 @@ public:
 			int GetItemBuyValueAtIndex(int Index);
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
-			UTexture2D* GetItemIconAtIndex(int Index);
-
-		UFUNCTION(BlueprintCallable, Category = "Inventory")
 			int GetInventorySize() const;
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
