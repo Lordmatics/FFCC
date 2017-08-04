@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "FFCC/Items/ItemTypeEnum.h"
 #include "PickupComponent.generated.h"
 
 
@@ -15,12 +16,31 @@ class FFCC_API UPickupComponent : public UActorComponent
 	GENERATED_BODY()
 
 private:
-
-public:	
+	//UPROPERTY(EditAnywhere, Category = "ItemName")
+	//	FString ItemName;
+public:
 	// Sets default values for this component's properties
 	UPickupComponent();
 
-	FOnPickedUp OnPickedUp;
+	//UPROPERTY(EditAnywhere, Category = "Item Asset")
+	//	class UItemDataAsset* ItemDataAsset;
+
+	//FOnPickedUp OnPickedUp;
+
+
+	//FORCEINLINE FString GetItemName() const
+	//{
+	//	return ItemName;
+	//}
+
+	//void RegisterItem(const FItemData& ItemToRegister);
+
+
+
+	//FItemData GetItemData();
+
+	////FItemData* ItemPtr;
+	//FItemData ItemData;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "FFCC/Items/ItemTypeEnum.h"
 #include "TextData.generated.h"
 
 /**
@@ -16,6 +17,7 @@ class FFCC_API UTextData : public UDataTable
 	
 private:
 
-	
-	
+	/*UPROPERTY(EditAnywhere, Category = "Item")
+		TArray<FItemData> ItemDataTable;
+	*/
 };

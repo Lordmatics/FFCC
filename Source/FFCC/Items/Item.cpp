@@ -4,7 +4,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
-#include "FFCC/CustomComponents/Pickupables/PickupComponent.h"
+#include "FFCC/DataAssets/Item/ItemDataAsset.h"
 
 // Sets default values
 AItem::AItem()
@@ -26,9 +26,6 @@ AItem::AItem()
 	MyItem->SetupAttachment(MyCollision);
 	MyItem->SetCollisionProfileName(FName(TEXT("Item")));
 	MyItem->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-
-	PickupableComp = CreateDefaultSubobject<UPickupComponent>(TEXT("Pickupable"));
-	PickupableComp->OnPickedUp.AddDynamic(this, &AItem::OnPickedUp);
 }
 
 void AItem::PostInitializeComponents()
@@ -53,4 +50,13 @@ void AItem::Tick(float DeltaTime)
 void AItem::OnPickedUp()
 {
 	Destroy();
+}
+
+FItemData AItem::GetItemData() const
+{
+	if (ItemDataAsset)
+	{
+		return ItemDataAsset->GetItemData();
+	}
+	return FItemData();
 }

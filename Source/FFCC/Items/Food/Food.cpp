@@ -15,8 +15,7 @@ void AFood::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	UItemTypeEnum::InitFood(FoodType, ItemName, ItemBuyValue, ItemSellValue);
-
+	//UItemTypeEnum::InitFood(FoodType, ItemData.ItemName, ItemData.ItemBuyValue, ItemData.ItemSellValue);
 }
 
 // Called when the game starts or when spawned

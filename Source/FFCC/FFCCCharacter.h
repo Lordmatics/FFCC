@@ -44,6 +44,15 @@ class AFFCCCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
 		bool bShowPlayerStock;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bMenuScroll;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		int IndexForTopElementInPlayersInventory;
+
+	//UFUNCTION(BlueprintCallable, Category = "Shop")
+	//	int GetInventorySize() const;
+
 	UFUNCTION()
 		void ShopUp();
 
@@ -76,11 +85,17 @@ class AFFCCCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		class UDialogueComponent* CurrentDialogueComponent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
-		class UPickupComponent* CurrentPickupComponent;
+	//UPROPERTY(/*VisibleAnywhere,*/ BlueprintReadOnly, Category = "Interact Target Debug", meta = (AllowPrivateAccess = "true"))
+	//	class UShopComponent* ShopComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Interact Target Debug")
-		class UShopComponent* ShopComponent;
+	//UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
+	//	class UShopComponent* TestShopComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Interact Target Debug")
+		class UInventoryDataAsset* InventoryData;
+
+	UPROPERTY(EditAnywhere, Category = "Interact Target Debug")
+		class UMerchShopDataAsset* CurrentShopData;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		uint32 bInInteractRange : 1;
@@ -158,6 +173,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Dialogue")
 		bool ShouldShowChat() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Items")
+		class UMerchShopDataAsset* GetMerchData() const;
 protected:
 
 	void MoveForward(float Value);
@@ -177,5 +194,32 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	public: 
+
+		// SHOP STUFF
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			FString GetItemNameAtIndex(int Index);
+
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			int GetItemSellValueAtIndex(int Index);
+
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			int GetItemBuyValueAtIndex(int Index);
+
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			int GetInventorySize() const;
+
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			FString GetMerchNameAtRow(int Row);
+
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			int GetMerchBuyAtRow(int Row);
+
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			int GetMerchSellAtRow(int Row);
+
+		UFUNCTION(BlueprintCallable, Category = "Inventory")
+			UTexture2D* GetMerchIconAtRow(int Row);
 };
 

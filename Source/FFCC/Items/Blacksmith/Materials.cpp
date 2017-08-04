@@ -15,7 +15,7 @@ void AMaterials::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	UItemTypeEnum::InitMaterial(MaterialType, ItemName, ItemBuyValue, ItemSellValue);
+	//UItemTypeEnum::InitMaterial(MaterialType, ItemData.ItemName, ItemData.ItemBuyValue, ItemData.ItemSellValue);
 }
 
 // Called when the game starts or when spawned

@@ -18,6 +18,8 @@
 #include "FFCC/CustomComponents/Pickupables/PickupComponent.h"
 #include "FFCC/NPC/NPC.h"
 #include "FFCC/DataAssets/Merchant/Home/MerchShopDataAsset.h"
+#include "FFCC/DataAssets/Item/InventoryDataAsset.h"
+#include "FFCC/Items/Item.h"
 #include "FFCC/Debug/Logs.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,13 +77,17 @@ AFFCCCharacter::AFFCCCharacter()
 	MaxShopItemIndex = 2;
 	bInAShop = false;
 
-	ShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("ShopComponent"));
 	bShowMerchantStock = false;
 	bShowPlayerStock = false;
 	MerchantHierarchy = 0;
 
 	LookAtComp = CreateDefaultSubobject<ULookAtComponent>(TEXT("LookAtComponent"));
 	MerchantLevel = 1;
+	bMenuScroll = false;
+	IndexForTopElementInPlayersInventory = 0;
+
+	//ShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("ShopComponent"));
+	//TestShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("TestShopComponent"));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -105,6 +111,12 @@ void AFFCCCharacter::BeginPlay()
 			if(temp)
 				PC->SetViewTargetWithBlend(temp, 1.0f);
 		}
+	}
+
+	if (InventoryData && InventoryData->GetItemDataList().Num() > 0)
+	{
+		InventoryData->ClearInventory();
+		// Load Saved Data to restock inventory
 	}
 
 	//UE_LOG(GenLog, Warning, TEXT("GenLog"));
@@ -214,11 +226,6 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 		//InteractTargetName = CurrentDialogueComponent->GetNPCName();
 		//InteractTargetCurrentSentence = Dialogues[InteractIndexInDialogue];
 	}
-	CurrentPickupComponent = Cast<UPickupComponent>(OtherActor->GetComponentByClass(UPickupComponent::StaticClass()));
-	if (CurrentPickupComponent)
-	{
-
-	}
 	UNPCStatsComponent* NPCComp = Cast<UNPCStatsComponent>(OtherActor->GetComponentByClass(UNPCStatsComponent::StaticClass()));
 	if (NPCComp)
 	{
@@ -269,17 +276,26 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 
 	// If Overlap is type safe
 	ANPC* NPC = Cast<ANPC>(OtherActor);
-	if (NPC)
+	if (NPC && NPC->GetData())
 	{
 		// If is a merchant
 		UMerchShopDataAsset* MerchData = Cast<UMerchShopDataAsset>(NPC->GetData()); // VTable points to correct version of data
-		if (MerchData && ShopComponent)
+		if (MerchData)
 		{
-			// Potential optimise here. Store locally, then push to UMG when enter shop.
-			// Maybe improve things since UMG checks per frame
-			ShopComponent->SetMerchantStock(*MerchData); // Pass by address for efficiency
+			CurrentShopData = MerchData;
 		}
+		//if (MerchData && ShopComponent)
+		//{
+		//	// Potential optimise here. Store locally, then push to UMG when enter shop.
+		//	// Maybe improve things since UMG checks per frame
+		//	ShopComponent->SetMerchantStock(*MerchData); // Pass by address for efficiency
+		//}
 	}
+}
+
+UMerchShopDataAsset* AFFCCCharacter::GetMerchData() const
+{
+	return CurrentShopData;
 }
 
 void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex)
@@ -303,13 +319,8 @@ void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* 
 		CurrentDialogueComponent = nullptr;
 	}
 
-	CurrentPickupComponent = Cast<UPickupComponent>(OtherActor->GetComponentByClass(UPickupComponent::StaticClass()));
-	if (CurrentPickupComponent)
-	{
-		CurrentPickupComponent = nullptr;
-	}
 	CurrentTargetActor = nullptr;
-	MenuReset();
+	MenuReset(); // Maybe only do this if was interacting with npc
 }
 
 void AFFCCCharacter::BeginInteract()
@@ -333,16 +344,20 @@ void AFFCCCharacter::BeginInteract()
 		CurrentLookAtTarget->SetLookingAtTarget(true);
 	}
 
-	if (CurrentPickupComponent)
+	if (CurrentTargetActor)
 	{
-		// Play pickup animation
-		// Wait for anim to be nearly finished
-		// Kill target
-		if (CurrentPickupComponent->OnPickedUp.IsBound())
+		AItem* Item = Cast<AItem>(CurrentTargetActor);
+		if (Item && InventoryData)
 		{
-			CurrentPickupComponent->OnPickedUp.Broadcast(); // consider add to inventory here?
+			// If Inventory full -> Branch to lift not pick n destroy
+			InventoryData->AddItem(Item->GetItemData());
+
+			Item->OnPickedUp(); // Destroy
+			Item = nullptr;
 		}
 	}
+
+
 	if (CurrentDialogueComponent && bInInteractRange)
 	{
 		//TODO: Unhide Chat Box
@@ -457,13 +472,33 @@ void AFFCCCharacter::AlchemistDrop()
 
 }
 
+int AFFCCCharacter::GetInventorySize() const
+{
+	// If inventory size not 0 return size
+	return 17; // How much that could be displayed at once
+}
+
 void AFFCCCharacter::ShopUp()
 {
 	if (!bInAShop) return;
 	ShopItemIndex--;
+
 	if (ShopItemIndex < 0)
 	{
-		ShopItemIndex = MaxShopItemIndex - 1;
+		if (bMenuScroll)
+		{
+			// Stay at bottom index
+			ShopItemIndex = 0;
+			// Push Elements Down
+			int TEMPInvSize = GetInventorySize();
+			IndexForTopElementInPlayersInventory <= 0 ? IndexForTopElementInPlayersInventory = TEMPInvSize : IndexForTopElementInPlayersInventory -= 1;
+			IndexForTopElementInPlayersInventory = TEMPInvSize - 1;
+		}
+		else
+		{
+			// Snap to Bottom
+			ShopItemIndex = MaxShopItemIndex - 1;
+		}
 	}
 }
 
@@ -474,7 +509,21 @@ void AFFCCCharacter::ShopDown()
 	ShopItemIndex++;
 	if (ShopItemIndex >= MaxShopItemIndex)
 	{
-		ShopItemIndex = 0;
+		if (bMenuScroll)
+		{
+			// Stay at top index
+			ShopItemIndex = MaxShopItemIndex - 1;
+			// Push Elements Up
+			int TEMPInvSize = GetInventorySize();
+			//int BotIndex = IndexForTopElementInPlayersInventory > (MaxShopItemIndex - 1) ? IndexForTopElementInPlayersInventory - (MaxShopItemIndex - 1) : IndexForTopElementInPlayersInventory + (MaxShopItemIndex - 1);
+			IndexForTopElementInPlayersInventory >= TEMPInvSize ? IndexForTopElementInPlayersInventory = 0 : IndexForTopElementInPlayersInventory += 1;
+
+		}
+		else
+		{
+			// Snap to Top
+			ShopItemIndex = 0;
+		}
 	}
 }
 
@@ -518,13 +567,17 @@ void AFFCCCharacter::ShopSelect()
 			bShowMerchantStock = true;
 			MaxShopItemIndex = GetMaxShopIndex();
 			MerchantHierarchy++;
+			bMenuScroll = false;
 		}
 		else if (ShopItemIndex == 1)
 		{
 			// Sell
 			bShowMerchantShop = false;
 			bShowPlayerStock = true;
+			MaxShopItemIndex = 17;
+			ShopItemIndex = 0;
 			MerchantHierarchy++;
+			bMenuScroll = true;
 		}
 	}
 	else if (bShowBlacksmithShop)
@@ -583,6 +636,8 @@ void AFFCCCharacter::MenuReset()
 
 	ShopItemIndex = 0;
 	MerchantHierarchy = 0;
+	IndexForTopElementInPlayersInventory = 0;
+	bMenuScroll = false;
 	
 }
 
@@ -600,6 +655,7 @@ void AFFCCCharacter::CloseMerchantShop()
 
 		ShopItemIndex = 0;
 		MerchantHierarchy = 0;
+		bMenuScroll = false;
 		UE_LOG(LogTemp, Warning, TEXT("Back to no menu: %d"), MerchantHierarchy);
 	}
 	else if (MerchantHierarchy == 1)
@@ -611,10 +667,14 @@ void AFFCCCharacter::CloseMerchantShop()
 		bShowMerchantStock = false; // Hide List
 		ShopItemIndex = 0;
 		MaxShopItemIndex = 2; // 2 options { BUY , SELL }
+		bMenuScroll = false;
 	}
 	else if (MerchantHierarchy == 2)
 	{
 		// Buy and Sell menu, so since there is no menu further up this can be blank
+		// For the time being - will add a "how many to buy / sell " soon
+		
+		//bMenuScroll = true; // If selling
 	}
 }
 
@@ -628,3 +688,113 @@ void AFFCCCharacter::CloseTailorShop()
 
 }
 
+FString AFFCCCharacter::GetItemNameAtIndex(int Index)
+{
+	FString ReturnValue = "? ? ? ? ";
+	if (!InventoryData) return ReturnValue;
+	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
+	if(Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetItemDataList()[Index].ItemName;
+	//if (Index > CurrentSlotsFilled - 1) return ReturnValue;
+	////AItem* Temp = new AItem()
+	//if (CurrentSlotsFilled == 0) return ReturnValue;
+	//if (Inventory[Index] != nullptr)
+	//{
+	//	ReturnValue = Inventory[Index]->ItemName;
+	//}
+	return ReturnValue;
+}
+
+int AFFCCCharacter::GetItemSellValueAtIndex(int Index)
+{
+	int ReturnValue = 99999;
+	if (!InventoryData) return ReturnValue;
+	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
+	if (Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetItemDataList()[Index].ItemSellValue;
+	//if (Index > CurrentSlotsFilled - 1) return ReturnValue;
+	//if (CurrentSlotsFilled == 0) return ReturnValue;
+
+	//if (Inventory[Index] != nullptr)
+	//{
+	//	ReturnValue = Inventory[Index]->ItemSellValue;
+	//}
+
+	return ReturnValue;
+}
+
+int AFFCCCharacter::GetItemBuyValueAtIndex(int Index)
+{
+	int ReturnValue = 99999;
+	if (!InventoryData) return ReturnValue;
+	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
+	if (Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetItemDataList()[Index].ItemBuyValue;
+	//if (Index > CurrentSlotsFilled - 1) return ReturnValue;
+	//if (CurrentSlotsFilled == 0) return ReturnValue;
+
+	//if (Inventory[Index] != nullptr)
+	//{
+	//	ReturnValue = Inventory[Index]->ItemSellValue;
+	//}
+
+	return ReturnValue;
+}
+
+FString AFFCCCharacter::GetMerchNameAtRow(int Row)
+{
+	FString ReturnValue = "? ? ? ? ";
+	if (!CurrentShopData) return ReturnValue;
+	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
+	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
+	ReturnValue = CurrentShopData->GetShopData()[Row].ItemName;
+	return ReturnValue;
+	//if (CurrentShopData && CurrentShopData->GetItemDataAtIndex(Row))
+	//{
+
+	//}
+	//if (CurrentShopData == nullptr) return "";
+	//if (Row > CurrentShopData->GetShopData().Num() - 1) return "";
+
+	//return CurrentShopData->GetShopData()[Row].ItemName;
+}
+
+int AFFCCCharacter::GetMerchBuyAtRow(int Row)
+{
+	int ReturnValue = 99999;
+	if (!CurrentShopData) return ReturnValue;
+	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
+	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
+	ReturnValue = CurrentShopData->GetShopData()[Row].ItemBuyPrice;
+	return ReturnValue;
+	//if (CurrentShopData == nullptr) return 0;
+	//if (Row > CurrentShopData->GetShopData().Num() - 1) return 0;
+	//return CurrentShopData->GetShopData()[Row].ItemBuyPrice;
+}
+
+int AFFCCCharacter::GetMerchSellAtRow(int Row)
+{
+	int ReturnValue = 99999;
+	if (!CurrentShopData) return ReturnValue;
+	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
+	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
+	ReturnValue = CurrentShopData->GetShopData()[Row].ItemSellPrice;
+	return ReturnValue;
+	//if (CurrentShopData == nullptr) return 0;
+
+	//if (Row > CurrentShopData->GetShopData().Num() - 1) return 0;
+	//return CurrentShopData->GetShopData()[Row].ItemSellPrice;
+}
+
+UTexture2D* AFFCCCharacter::GetMerchIconAtRow(int Row)
+{
+	UTexture2D* ReturnValue = nullptr;
+	if (!CurrentShopData) return ReturnValue;
+	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
+	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
+	ReturnValue = CurrentShopData->GetShopData()[Row].ItemIcon;
+	return ReturnValue;	//if (CurrentShopData == nullptr) return  nullptr;
+
+	//if (Row > CurrentShopData->GetShopData().Num() - 1) return nullptr;
+	//return CurrentShopData->GetShopData()[Row].ItemIcon;
+}

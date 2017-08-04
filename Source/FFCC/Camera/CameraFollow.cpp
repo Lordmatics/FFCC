@@ -16,14 +16,17 @@ ACameraFollow::ACameraFollow()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("MyRoot"));
+	Root->SetRelativeRotation(FRotator(0.0f, -40.0f, 0.0f));
 	RootComponent = Root;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(Root);
 
 	xOffset = -100.0f;
-	yOffset = 300.0f;
-	zOffset = 0.0f;
+	yOffset = -300.0f;
+	zOffset = 500.0f;
+
+	// YRot - 40.0f;
 
 	InterpSpeed = 2.5f;
 

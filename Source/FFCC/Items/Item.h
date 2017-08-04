@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "FFCC/Items/ItemTypeEnum.h"
 #include "Item.generated.h"
 
 UCLASS()
@@ -19,17 +20,14 @@ public:
 	// Sets default values for this actor's properties
 	AItem();
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Item")
-		class UPickupComponent* PickupableComp;
+	UPROPERTY(EditAnywhere, Category = "Item")
+		class UItemDataAsset* ItemDataAsset;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
-		FString ItemName;
+	FItemData GetItemData() const;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
-		int ItemSellValue;
+	UFUNCTION()
+		virtual void OnPickedUp();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
-		int ItemBuyValue;
 protected:
 	
 	UPROPERTY(VisibleDefaultsOnly, Category = "Item")
@@ -46,8 +44,6 @@ protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION()
-		virtual void OnPickedUp();
 	
 	//template<typename T>
 	//FString EnumToString(const FString& enumName, const T value, const FString& defaultValue) const

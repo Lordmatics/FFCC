@@ -24,6 +24,9 @@ struct FShopData
 	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item IMAGE"))
 		UTexture2D* ItemIcon;
 
+	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item Data"))
+		class UItemDataAsset* ItemData;
+
 	/** Default Constructor*/
 	FShopData()
 	{
@@ -31,6 +34,7 @@ struct FShopData
 		ItemBuyPrice = 0;
 		ItemSellPrice = 0;
 		ItemIcon = nullptr;
+		ItemData = nullptr;
 	}
 };
 
@@ -51,5 +55,7 @@ private:
 public:
 
 	FORCEINLINE TArray<FShopData> GetShopData() const { return MerchantShopList; }
+
+	class UItemDataAsset* GetItemDataAtIndex(int Index);
 	
 };

@@ -2,7 +2,6 @@
 
 #include "Seeds.h"
 
-
 // Sets default values
 ASeeds::ASeeds()
 {
@@ -15,8 +14,7 @@ void ASeeds::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	UItemTypeEnum::InitSeed(SeedType, ItemName, ItemBuyValue, ItemSellValue);
-
+	//UItemTypeEnum::InitSeed(SeedType, ItemData.ItemName, ItemData.ItemBuyValue, ItemData.ItemSellValue);
 }
 
 // Called when the game starts or when spawned
