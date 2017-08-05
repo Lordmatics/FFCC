@@ -139,11 +139,6 @@ void AFFCCCharacter::UpgradeMerchantLevel()
 
 void AFFCCCharacter::DebugSell()
 {
-	if (!InventoryData) return;
-	UE_LOG(LogTemp, Warning, TEXT("BEFORE - Inventory Num: %d"), InventoryData->GetSize());
-	InventoryData->RemoveItemAt(ShopItemIndex);
-	UE_LOG(LogTemp, Warning, TEXT("Removing Element: %d"), ShopItemIndex);
-	UE_LOG(LogTemp, Warning, TEXT("AFTER - Inventory Num: %d"), InventoryData->GetSize());
 
 }
 
@@ -161,8 +156,6 @@ void AFFCCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("ShopBack", IE_Pressed, this, &AFFCCCharacter::ShopBack);
 
 	PlayerInputComponent->BindAction("DebugML", IE_Pressed, this, &AFFCCCharacter::UpgradeMerchantLevel);
-	PlayerInputComponent->BindAction("DebugSell", IE_Pressed, this, &AFFCCCharacter::DebugSell);
-
 
 
 

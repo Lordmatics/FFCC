@@ -135,6 +135,8 @@ class AFFCCCharacter : public ACharacter
 	UFUNCTION()
 		void UpgradeMerchantLevel();
 
+	UFUNCTION()
+		void DebugSell();
 
 	enum Flags
 	{

@@ -22,6 +22,23 @@ void UInventoryDataAsset::RemoveItemByName(const FString& Name)
 		}
 	}
 }
+
+void UInventoryDataAsset::RemoveItemAt(int Index)
+{
+	if (Index > GetSize() - 1 || Index < 0)
+	{
+		return;
+	}
+	if (Index < InventoryItemData.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved NAME : %s"), *InventoryItemData[Index].ItemName);
+		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved TYPE : %d"), (int)InventoryItemData[Index].ItemType);
+		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved BUY : %d"), InventoryItemData[Index].ItemBuyValue);
+		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved SELL : %d"), InventoryItemData[Index].ItemSellValue);
+		InventoryItemData.RemoveAt(Index);
+	}
+}
+
 void UInventoryDataAsset::ClearInventory()
 {
 	while (InventoryItemData.Num() != 0)
