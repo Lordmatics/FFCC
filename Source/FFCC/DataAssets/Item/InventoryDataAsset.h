@@ -29,7 +29,7 @@ public:
 	int GetBuyValueAt(int Index);
 	int GetSellValueAt(int Index);
 	FString GetItemNameAt(int Index);
-	TAssetPtr<UTexture2D> GetItemIconAt(int Index);
+	class UTexture2D* GetItemIconAt(int Index);
 
 	void AddItem(const FItemData& ItemName);
 

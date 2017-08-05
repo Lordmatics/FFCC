@@ -408,8 +408,8 @@ struct FItemData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 		int ItemBuyValue;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelUp)
-		TAssetPtr<UTexture2D> ItemIcon;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+		UTexture2D* ItemIcon;
 
 	//http://en.cppreference.com/w/cpp/language/reference_initialization
 	//operator FItemData&() { FItemData(); }

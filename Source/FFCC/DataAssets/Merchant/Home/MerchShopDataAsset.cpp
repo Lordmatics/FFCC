@@ -4,7 +4,7 @@
 #include "FFCC/DataAssets/Item/ItemDataAsset.h"
 #include "Classes/Engine/Texture2D.h"
 
-TAssetPtr<UTexture2D> UMerchShopDataAsset::GetItemIconAt(int Index)
+UTexture2D* UMerchShopDataAsset::GetItemIconAt(int Index)
 {
 	if (Index < MerchantShopList.Num())
 	{

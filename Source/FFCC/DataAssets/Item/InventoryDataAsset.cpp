@@ -3,8 +3,7 @@
 #include "InventoryDataAsset.h"
 #include "FFCC/FFCCGameMode.h"
 #include "Classes/Engine/World.h"
-
-
+#include "Classes/Engine/Texture2D.h"
 
 void UInventoryDataAsset::AddItem(const FItemData& ItemToAdd)
 {
@@ -58,7 +57,7 @@ FString UInventoryDataAsset::GetItemNameAt(int Index)
 	return InventoryItemData[Index].ItemName;
 }
 
-TAssetPtr<UTexture2D> UInventoryDataAsset::GetItemIconAt(int Index)
+UTexture2D* UInventoryDataAsset::GetItemIconAt(int Index)
 {
 	if (Index > GetSize() - 1 || Index < 0)
 	{

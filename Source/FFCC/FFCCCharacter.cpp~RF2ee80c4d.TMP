@@ -11,7 +11,6 @@
 #include "EngineUtils.h"
 #include "FFCC/Camera/CameraFollow.h"
 #include "Classes/GameFramework/PlayerController.h"
-#include "Classes/Engine/Texture2D.h"
 #include "FFCC/CustomComponents/LookAt/LookAtComponent.h"
 #include "FFCC/CustomComponents/Dialogue/DialogueComponent.h"
 #include "FFCC/CustomComponents/NPCStats/NPCStatsComponent.h"
@@ -23,8 +22,8 @@
 #include "FFCC/Items/Item.h"
 #include "FFCC/Debug/Logs.h"
 
-//#include "Runtime/Engine/Classes/Engine/StreamableManager.h"
-//#include "Engine.h"
+#include "Runtime/Engine/Classes/Engine/StreamableManager.h"
+#include "Engine.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFFCCCharacter
@@ -134,15 +133,14 @@ void AFFCCCharacter::BeginPlay()
 void AFFCCCharacter::UpgradeMerchantLevel()
 {
 	MerchantLevel++;
-	MaxShopItemIndex = GetMaxShopIndex();
 }
 
 void AFFCCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AFFCCCharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AFFCCCharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFFCCCharacter::BeginInteract);
 	PlayerInputComponent->BindAction("ShopUp", IE_Pressed, this, &AFFCCCharacter::ShopUp);
@@ -164,19 +162,6 @@ void AFFCCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	//PlayerInputComponent->BindAxis("TurnRate", this, &AFFCCCharacter::TurnAtRate);
 	//PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	//PlayerInputComponent->BindAxis("LookUpRate", this, &AFFCCCharacter::LookUpAtRate);
-}
-
-void AFFCCCharacter::Jump()
-{
-	if (bInAShop || bShowChat) return;
-	Super::Jump();
-}
-
-void AFFCCCharacter::StopJumping()
-{
-	if (bInAShop || bShowChat) return;
-
-	Super::StopJumping();
 }
 
 void AFFCCCharacter::TurnAtRate(float Rate)
@@ -343,9 +328,6 @@ void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* 
 
 void AFFCCCharacter::BeginInteract()
 {
-	if (bInAShop) return;
-
-	//	 TURN TO WHAT YOU ARE INTERACTING WITH
 	if (LookAtComp && CurrentTargetActor)
 	{
 		// TODO: Smooth this out
@@ -358,7 +340,6 @@ void AFFCCCharacter::BeginInteract()
 		//}
 	}
 
-	//	MAKE OBJECT YOU ARE INTERACTING WITH LOOK AT YOU
 	if (CurrentLookAtTarget && bInInteractRange)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Target now looking at player"));
@@ -366,7 +347,6 @@ void AFFCCCharacter::BeginInteract()
 		CurrentLookAtTarget->SetLookingAtTarget(true);
 	}
 
-	// CHECK IF ITEM IS PICKUPABLE
 	if (CurrentTargetActor)
 	{
 		AItem* Item = Cast<AItem>(CurrentTargetActor);
@@ -511,31 +491,18 @@ void AFFCCCharacter::ShopUp()
 
 	if (ShopItemIndex < 0)
 	{
-		// Check to see if we should scroll for more ivnentory space
-		// Check if there are enough elements to scroll
-		if (bMenuScroll && GetInventorySize() > MaxShopItemIndex)
+		if (bMenuScroll)
 		{
 			// Stay at bottom index
 			ShopItemIndex = 0;
 			// Push Elements Down
 			int TEMPInvSize = GetInventorySize();
-			//IndexForTopElementInPlayersInventory <= 0 ? IndexForTopElementInPlayersInventory = TEMPInvSize : IndexForTopElementInPlayersInventory -= 1;
-			//IndexForTopElementInPlayersInventory = TEMPInvSize - 1;
-			IndexForTopElementInPlayersInventory -= 1;
-			if (IndexForTopElementInPlayersInventory < 0)
-			{
-				IndexForTopElementInPlayersInventory = TEMPInvSize - 1;
-			}
+			IndexForTopElementInPlayersInventory <= 0 ? IndexForTopElementInPlayersInventory = TEMPInvSize : IndexForTopElementInPlayersInventory -= 1;
+			IndexForTopElementInPlayersInventory = TEMPInvSize - 1;
 		}
 		else
 		{
 			// Snap to Bottom
-			// IF YOU DONT HAVE ENOUGH ITEMS TO COVER ONE SCREEN
-			//if (GetInventorySize() <= MaxShopItemIndex)
-			//{
-			//	ShopItemIndex = GetInventorySize();
-			//	return;
-			//}
 			ShopItemIndex = MaxShopItemIndex - 1;
 
 			//IndexForTopElementInPlayersInventory = 0;
@@ -548,43 +515,26 @@ void AFFCCCharacter::ShopDown()
 	if (!bInAShop) return;
 
 	ShopItemIndex++;
-
-
 	if (ShopItemIndex >= MaxShopItemIndex)
 	{
-		if (bMenuScroll && GetInventorySize() > MaxShopItemIndex)
+		if (bMenuScroll)
 		{
 			// Stay at top index
 			ShopItemIndex = MaxShopItemIndex - 1;
 			// Push Elements Up
 			int TEMPInvSize = GetInventorySize();
 			//int BotIndex = IndexForTopElementInPlayersInventory > (MaxShopItemIndex - 1) ? IndexForTopElementInPlayersInventory - (MaxShopItemIndex - 1) : IndexForTopElementInPlayersInventory + (MaxShopItemIndex - 1);
-			//IndexForTopElementInPlayersInventory >= TEMPInvSize ? IndexForTopElementInPlayersInventory = 0 : IndexForTopElementInPlayersInventory += 1;
-
-			IndexForTopElementInPlayersInventory += 1;
-			if (IndexForTopElementInPlayersInventory >= TEMPInvSize)
-			{
-				IndexForTopElementInPlayersInventory = 0;
-			}
-
-			return;
+			IndexForTopElementInPlayersInventory >= TEMPInvSize ? IndexForTopElementInPlayersInventory = 0 : IndexForTopElementInPlayersInventory += 1;
 
 		}
 		else
 		{
 			// Snap to Top
 			ShopItemIndex = 0;
-			return;
+
 			//IndexForTopElementInPlayersInventory = 0;
 		}
 	}
-
-	// IF YOU DONT HAVE ENOUGH ITEMS TO COVER ONE SCREEN
-	//if (ShopItemIndex >= GetInventorySize())
-	//{
-	//	ShopItemIndex = 0;
-	//	return;
-	//}
 }
 
 int AFFCCCharacter::GetMaxShopIndex() const
@@ -634,7 +584,7 @@ void AFFCCCharacter::ShopSelect()
 			// Sell
 			bShowMerchantShop = false;
 			bShowPlayerStock = true;
-			MaxShopItemIndex = 17; // MAX ITEMS ON SCREEN
+			MaxShopItemIndex = 17;
 			ShopItemIndex = 0;
 			MerchantHierarchy++;
 			bMenuScroll = true;
@@ -805,14 +755,14 @@ int AFFCCCharacter::GetItemBuyValueAtIndex(int Index)
 	return ReturnValue;
 }
 
-UTexture2D* AFFCCCharacter::GetItemIconAtIndex(int Index)
+TAssetPtr<UTexture2D> AFFCCCharacter::GetItemIconAtIndex(int Index)
 {
-	UTexture2D* ReturnValue = InvalidTexture;
+	TAssetPtr<UTexture2D> ReturnValue = InvalidTexture;
 	if (!InventoryData) return ReturnValue;
 	if (InventoryData->GetSize() == 0) return ReturnValue;
 	if (Index > InventoryData->GetSize() - 1) return ReturnValue;
 	ReturnValue = InventoryData->GetItemIconAt(Index);
-	return ReturnValue != nullptr ? ReturnValue : InvalidTexture;
+	return ReturnValue.IsValid() ? ReturnValue : InvalidTexture;
 }
 
 FString AFFCCCharacter::GetMerchNameAtRow(int Row)
@@ -876,15 +826,15 @@ int AFFCCCharacter::GetMerchSellAtRow(int Row)
 	//}
 //}
 
-UTexture2D* AFFCCCharacter::GetMerchIconAtRow(int Row)
+TAssetPtr<UTexture2D> AFFCCCharacter::GetMerchIconAtRow(int Row)
 {
-	UTexture2D* ReturnValue = InvalidTexture;
+	TAssetPtr<UTexture2D> ReturnValue = InvalidTexture;
 	if (!CurrentShopData) return ReturnValue;
 	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
 	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
 	ReturnValue = CurrentShopData->GetItemIconAt(Row);
-	//if (ReturnValue.IsPending())
-	//{
+	if (ReturnValue.IsPending())
+	{
 		//TArray<FAssetData> AssetDatas;
 		//UObjectLibrary Lib;
 		//Lib.GetAssetDataList(AssetDatas);
@@ -913,9 +863,9 @@ UTexture2D* AFFCCCharacter::GetMerchIconAtRow(int Row)
 		//	}
 		//}
 		//FStreamableManager& AssetMgr = GetStreamable();
-	//}
+	}
 	//ReturnValue = CurrentShopData->GetShopData()[Row].ItemIcon;
-	return ReturnValue != nullptr ? ReturnValue : InvalidTexture;
+	return ReturnValue.IsValid() ? ReturnValue : InvalidTexture;
 
 	//if (Row > CurrentShopData->GetShopData().Num() - 1) return nullptr;
 	//return CurrentShopData->GetShopData()[Row].ItemIcon;

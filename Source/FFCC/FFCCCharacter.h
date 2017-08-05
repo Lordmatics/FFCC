@@ -194,6 +194,9 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void Jump() override;
+
+	virtual void StopJumping() override;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -213,7 +216,7 @@ public:
 			int GetItemBuyValueAtIndex(int Index);
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
-			TAssetPtr<UTexture2D> GetItemIconAtIndex(int Index);
+			class UTexture2D* GetItemIconAtIndex(int Index);
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
 			int GetInventorySize() const;
@@ -228,10 +231,10 @@ public:
 			int GetMerchSellAtRow(int Row);
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
-			TAssetPtr<UTexture2D> GetMerchIconAtRow(int Row);
+			class UTexture2D* GetMerchIconAtRow(int Row);
 
 		private:
 			UPROPERTY(EditAnywhere, Category = "Invalid")
-				TAssetPtr<UTexture2D> InvalidTexture;
+				class UTexture2D* InvalidTexture;
 };
 
