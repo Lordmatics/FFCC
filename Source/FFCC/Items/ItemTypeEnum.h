@@ -409,7 +409,7 @@ struct FItemData : public FTableRowBase
 		int ItemBuyValue;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelUp)
-		UTexture2D* ItemIcon;
+		TAssetPtr<UTexture2D> ItemIcon;
 
 	//http://en.cppreference.com/w/cpp/language/reference_initialization
 	//operator FItemData&() { FItemData(); }
@@ -425,6 +425,7 @@ struct FItemData : public FTableRowBase
 		ItemSellValue = 0;
 		ItemBuyValue = 0;
 		LookUpIndex = 0;
+		ItemIcon = nullptr;
 	}
 
 	FItemData(const FItemData& Other)
@@ -437,6 +438,7 @@ struct FItemData : public FTableRowBase
 		ItemSellValue = Other.ItemBuyValue;
 		ItemBuyValue = Other.ItemSellValue;
 		LookUpIndex = 0;
+		ItemIcon = Other.ItemIcon;
 	}
 
 	FItemData(ESeedType _SeedType, const FString& _Name, int _Buy, int _Sell)
@@ -449,6 +451,7 @@ struct FItemData : public FTableRowBase
 		ItemBuyValue = _Buy;
 		ItemSellValue = _Sell;
 		LookUpIndex = 0;
+		ItemIcon = nullptr;
 	}
 
 	FItemData(EFoodType _FoodType, const FString& _Name, int _Buy, int _Sell)
@@ -461,6 +464,7 @@ struct FItemData : public FTableRowBase
 		ItemBuyValue = _Buy;
 		ItemSellValue = _Sell;
 		LookUpIndex = 0;
+		ItemIcon = nullptr;
 	}
 
 	FItemData(EMaterialType _MaterialType, const FString& _Name, int _Buy, int _Sell)
@@ -473,6 +477,7 @@ struct FItemData : public FTableRowBase
 		ItemBuyValue = _Buy;
 		ItemSellValue = _Sell;
 		LookUpIndex = 0;
+		ItemIcon = nullptr;
 	}
 };
 /**

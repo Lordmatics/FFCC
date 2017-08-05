@@ -30,3 +30,44 @@ void UInventoryDataAsset::ClearInventory()
 		InventoryItemData.RemoveAt(0);
 	}
 }
+
+int UInventoryDataAsset::GetBuyValueAt(int Index)
+{
+	if (Index > GetSize() - 1 || Index < 0)
+	{
+		return -1;
+	}
+	return InventoryItemData[Index].ItemBuyValue;
+}
+
+int UInventoryDataAsset::GetSellValueAt(int Index)
+{
+	if (Index > GetSize() - 1 || Index < 0)
+	{
+		return -1;
+	}
+	return InventoryItemData[Index].ItemSellValue;
+}
+
+FString UInventoryDataAsset::GetItemNameAt(int Index)
+{
+	if (Index > GetSize() - 1 || Index < 0)
+	{
+		return FString(TEXT("? ? ? ?"));
+	}
+	return InventoryItemData[Index].ItemName;
+}
+
+TAssetPtr<UTexture2D> UInventoryDataAsset::GetItemIconAt(int Index)
+{
+	if (Index > GetSize() - 1 || Index < 0)
+	{
+		return nullptr;
+	}
+	return InventoryItemData[Index].ItemIcon;
+}
+
+int UInventoryDataAsset::GetSize() const
+{
+	return InventoryItemData.Num();
+}

@@ -175,6 +175,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Items")
 		class UMerchShopDataAsset* GetMerchData() const;
+
+	//class FStreamableManager AssetLoader;
+	//UFUNCTION()
+	//	void DoAsyncLoad();
+
 protected:
 
 	void MoveForward(float Value);
@@ -208,7 +213,7 @@ public:
 			int GetItemBuyValueAtIndex(int Index);
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
-			UTexture2D* GetItemIconAtIndex(int Index);
+			TAssetPtr<UTexture2D> GetItemIconAtIndex(int Index);
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
 			int GetInventorySize() const;
@@ -223,6 +228,10 @@ public:
 			int GetMerchSellAtRow(int Row);
 
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
-			UTexture2D* GetMerchIconAtRow(int Row);
+			TAssetPtr<UTexture2D> GetMerchIconAtRow(int Row);
+
+		private:
+			UPROPERTY(EditAnywhere, Category = "Invalid")
+				TAssetPtr<UTexture2D> InvalidTexture;
 };
 

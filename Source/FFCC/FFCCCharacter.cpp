@@ -22,6 +22,9 @@
 #include "FFCC/Items/Item.h"
 #include "FFCC/Debug/Logs.h"
 
+#include "Runtime/Engine/Classes/Engine/StreamableManager.h"
+#include "Engine.h"
+
 //////////////////////////////////////////////////////////////////////////
 // AFFCCCharacter
 
@@ -474,8 +477,11 @@ void AFFCCCharacter::AlchemistDrop()
 
 int AFFCCCharacter::GetInventorySize() const
 {
+	//return 17;
+
 	// If inventory size not 0 return size
-	return 17; // How much that could be displayed at once
+	int Size = InventoryData ? InventoryData->GetSize() : 0;
+	return Size; // How much that could be displayed at once
 }
 
 void AFFCCCharacter::ShopUp()
@@ -498,6 +504,8 @@ void AFFCCCharacter::ShopUp()
 		{
 			// Snap to Bottom
 			ShopItemIndex = MaxShopItemIndex - 1;
+
+			//IndexForTopElementInPlayersInventory = 0;
 		}
 	}
 }
@@ -523,6 +531,8 @@ void AFFCCCharacter::ShopDown()
 		{
 			// Snap to Top
 			ShopItemIndex = 0;
+
+			//IndexForTopElementInPlayersInventory = 0;
 		}
 	}
 }
@@ -633,6 +643,7 @@ void AFFCCCharacter::MenuReset()
 	TradeFlags = Flags::E_Other;
 	bShowMerchantShop = false;
 	bShowMerchantStock = false;
+	bShowPlayerStock = false;
 
 	ShopItemIndex = 0;
 	MerchantHierarchy = 0;
@@ -650,6 +661,8 @@ void AFFCCCharacter::CloseMerchantShop()
 		//TradeFlags = Flags::E_Other;
 		bShowMerchantShop = false;
 		bShowMerchantStock = false;
+		bShowPlayerStock = false;
+
 		bShowChat = false;
 		bInAShop = false;
 
@@ -665,6 +678,7 @@ void AFFCCCharacter::CloseMerchantShop()
 		bShowMerchantShop = true; // Show BUY SELL Menu
 		bInAShop = true; // Maybe redundant
 		bShowMerchantStock = false; // Hide List
+		bShowPlayerStock = false;
 		ShopItemIndex = 0;
 		MaxShopItemIndex = 2; // 2 options { BUY , SELL }
 		bMenuScroll = false;
@@ -690,11 +704,11 @@ void AFFCCCharacter::CloseTailorShop()
 
 FString AFFCCCharacter::GetItemNameAtIndex(int Index)
 {
-	FString ReturnValue = "? ? ? ? ";
+	FString ReturnValue = FString(TEXT("? ? ? ? "));
 	if (!InventoryData) return ReturnValue;
-	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
-	if(Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
-	ReturnValue = InventoryData->GetItemDataList()[Index].ItemName;
+	if (InventoryData->GetSize() == 0) return ReturnValue;
+	if(Index > InventoryData->GetSize() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetItemNameAt(Index);
 	//if (Index > CurrentSlotsFilled - 1) return ReturnValue;
 	////AItem* Temp = new AItem()
 	//if (CurrentSlotsFilled == 0) return ReturnValue;
@@ -707,11 +721,11 @@ FString AFFCCCharacter::GetItemNameAtIndex(int Index)
 
 int AFFCCCharacter::GetItemSellValueAtIndex(int Index)
 {
-	int ReturnValue = 99999;
+	int ReturnValue = -1;
 	if (!InventoryData) return ReturnValue;
-	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
-	if (Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
-	ReturnValue = InventoryData->GetItemDataList()[Index].ItemSellValue;
+	if (InventoryData->GetSize() == 0) return ReturnValue;
+	if (Index > InventoryData->GetSize() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetSellValueAt(Index);
 	//if (Index > CurrentSlotsFilled - 1) return ReturnValue;
 	//if (CurrentSlotsFilled == 0) return ReturnValue;
 
@@ -725,11 +739,11 @@ int AFFCCCharacter::GetItemSellValueAtIndex(int Index)
 
 int AFFCCCharacter::GetItemBuyValueAtIndex(int Index)
 {
-	int ReturnValue = 99999;
+	int ReturnValue = -1;
 	if (!InventoryData) return ReturnValue;
-	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
-	if (Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
-	ReturnValue = InventoryData->GetItemDataList()[Index].ItemBuyValue;
+	if (InventoryData->GetSize() == 0) return ReturnValue;
+	if (Index > InventoryData->GetSize() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetBuyValueAt(Index);
 	//if (Index > CurrentSlotsFilled - 1) return ReturnValue;
 	//if (CurrentSlotsFilled == 0) return ReturnValue;
 
@@ -741,14 +755,14 @@ int AFFCCCharacter::GetItemBuyValueAtIndex(int Index)
 	return ReturnValue;
 }
 
-UTexture2D* AFFCCCharacter::GetItemIconAtIndex(int Index)
+TAssetPtr<UTexture2D> AFFCCCharacter::GetItemIconAtIndex(int Index)
 {
-	UTexture2D* ReturnValue = nullptr;
+	TAssetPtr<UTexture2D> ReturnValue = InvalidTexture;
 	if (!InventoryData) return ReturnValue;
-	if (InventoryData->GetItemDataList().Num() == 0) return ReturnValue;
-	if (Index > InventoryData->GetItemDataList().Num() - 1) return ReturnValue;
-	ReturnValue = InventoryData->GetItemDataList()[Index].ItemIcon;
-	return ReturnValue;
+	if (InventoryData->GetSize() == 0) return ReturnValue;
+	if (Index > InventoryData->GetSize() - 1) return ReturnValue;
+	ReturnValue = InventoryData->GetItemIconAt(Index);
+	return ReturnValue.IsValid() ? ReturnValue : InvalidTexture;
 }
 
 FString AFFCCCharacter::GetMerchNameAtRow(int Row)
@@ -796,14 +810,62 @@ int AFFCCCharacter::GetMerchSellAtRow(int Row)
 	//return CurrentShopData->GetShopData()[Row].ItemSellPrice;
 }
 
-UTexture2D* AFFCCCharacter::GetMerchIconAtRow(int Row)
+//void AFFCCCharacter::DoAsyncLoad()
+//{
+	//UE_LOG(LogTemp, Warning, TEXT("Init Ran"));
+	//UObject* NewTrack = AudioAssetToLoad.ResolveObject(); 	// Creates a pointer to store the loaded object
+	//USoundWave* Track = Cast<USoundWave>(NewTrack);
+	//if (Track != nullptr && AudioComponentA != nullptr)
+	//{
+	//	CurrentMaxTimeInTrack = Track->GetDuration();
+	//	AudioComponentA->SetSound(Track);
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("Audio Component or Track NULL : DoAsyncInitialise"));
+	//}
+//}
+
+TAssetPtr<UTexture2D> AFFCCCharacter::GetMerchIconAtRow(int Row)
 {
-	UTexture2D* ReturnValue = nullptr;
+	TAssetPtr<UTexture2D> ReturnValue = InvalidTexture;
 	if (!CurrentShopData) return ReturnValue;
 	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
 	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
-	ReturnValue = CurrentShopData->GetShopData()[Row].ItemIcon;
-	return ReturnValue;	//if (CurrentShopData == nullptr) return  nullptr;
+	ReturnValue = CurrentShopData->GetItemIconAt(Row);
+	if (ReturnValue.IsPending())
+	{
+		//TArray<FAssetData> AssetDatas;
+		//UObjectLibrary Lib;
+		//Lib.GetAssetDataList(AssetDatas);
+		
+		//TArray<FStringAssetReference> ImageToLoad;
+		//FStreamableManager& Loader = AssetLoader;
+		//const FStringAssetReference& Ref = ReturnValue.ToStringReference();
+		//Loader.RequestAsyncLoad(ImageToLoad, FStreamableDelegate::CreateUObject(this, &AFFCCCharacter::DoAsyncLoad));
+		//TArray<FAudio> Audios = AudioDataBase->GetAudios();
+		//AudioAssetToLoad = Audios[Index].AudioResource.ToStringReference();
+		//AudioToLoad.AddUnique(AudioAssetToLoad);
+		//Loader.RequestAsyncLoad(AudioToLoad, FStreamableDelegate::CreateUObject(this, &AAudioManager::DoAsyncInitialise));
+
+
+		//ObjectLibrary->GetAssetDataList(AssetDatas);
+
+		//for (int32 i = 0; i < AssetDatas.Num(); ++i)
+		//{
+		//	FAssetData& AssetData = AssetDatas[i];
+
+		//	const FString* FoundTypeNameString = AssetData.TagsAndValues.Find(GET_MEMBER_NAME_CHECKED(UAssetObject, TypeName));
+
+		//	if (FoundTypeNameString && FoundTypeNameString->Contains(TEXT("FooType")))
+		//	{
+		//		return AssetData;
+		//	}
+		//}
+		//FStreamableManager& AssetMgr = GetStreamable();
+	}
+	//ReturnValue = CurrentShopData->GetShopData()[Row].ItemIcon;
+	return ReturnValue.IsValid() ? ReturnValue : InvalidTexture;
 
 	//if (Row > CurrentShopData->GetShopData().Num() - 1) return nullptr;
 	//return CurrentShopData->GetShopData()[Row].ItemIcon;

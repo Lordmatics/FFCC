@@ -22,7 +22,7 @@ struct FShopData
 		int ItemSellPrice;
 
 	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item IMAGE"))
-		UTexture2D* ItemIcon;
+		TAssetPtr<class UTexture2D> ItemIcon;
 
 	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item Data"))
 		class UItemDataAsset* ItemData;
@@ -56,6 +56,7 @@ public:
 
 	FORCEINLINE TArray<FShopData> GetShopData() const { return MerchantShopList; }
 
+	TAssetPtr<class UTexture2D> GetItemIconAt(int Index);
 	class UItemDataAsset* GetItemDataAtIndex(int Index);
 	
 };

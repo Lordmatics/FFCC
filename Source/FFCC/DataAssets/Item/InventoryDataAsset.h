@@ -24,6 +24,13 @@ public:
 
 	FORCEINLINE TArray<FItemData> GetItemDataList() { return InventoryItemData; }
 	
+	int GetSize() const;
+
+	int GetBuyValueAt(int Index);
+	int GetSellValueAt(int Index);
+	FString GetItemNameAt(int Index);
+	TAssetPtr<UTexture2D> GetItemIconAt(int Index);
+
 	void AddItem(const FItemData& ItemName);
 
 	void RemoveItemByName(const FString& Name);
