@@ -23,11 +23,12 @@ void UInventoryDataAsset::RemoveItemByName(const FString& Name)
 	}
 }
 
-void UInventoryDataAsset::RemoveItemAt(int Index)
+int UInventoryDataAsset::RemoveItemAt(int Index)
 {
+	int ReturnValue = 0;
 	if (Index > GetSize() - 1 || Index < 0)
 	{
-		return;
+		return ReturnValue;
 	}
 	if (Index < InventoryItemData.Num())
 	{
@@ -35,8 +36,10 @@ void UInventoryDataAsset::RemoveItemAt(int Index)
 		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved TYPE : %d"), (int)InventoryItemData[Index].ItemType);
 		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved BUY : %d"), InventoryItemData[Index].ItemBuyValue);
 		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved SELL : %d"), InventoryItemData[Index].ItemSellValue);
+		ReturnValue = InventoryItemData[Index].ItemSellValue;
 		InventoryItemData.RemoveAt(Index);
 	}
+	return ReturnValue;
 }
 
 void UInventoryDataAsset::ClearInventory()

@@ -35,7 +35,7 @@ public:
 
 	void RemoveItemByName(const FString& Name);
 
-	void RemoveItemAt(int Index);
+	int RemoveItemAt(int Index);
 
 	void ClearInventory();
 	

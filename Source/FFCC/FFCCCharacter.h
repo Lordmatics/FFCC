@@ -36,6 +36,9 @@ class AFFCCCharacter : public ACharacter
 		int ShopItemIndex;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		int AreYouSureIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
 		int MaxShopItemIndex;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
@@ -45,10 +48,17 @@ class AFFCCCharacter : public ACharacter
 		bool bShowPlayerStock;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bShowAreYouSurePrompt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
 		bool bMenuScroll;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
 		int IndexForTopElementInPlayersInventory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		int GilCount;
+
 
 	//UFUNCTION(BlueprintCallable, Category = "Shop")
 	//	int GetInventorySize() const;

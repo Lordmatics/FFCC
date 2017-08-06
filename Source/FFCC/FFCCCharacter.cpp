@@ -90,6 +90,8 @@ AFFCCCharacter::AFFCCCharacter()
 	bMenuScroll = false;
 	IndexForTopElementInPlayersInventory = 0;
 
+	bShowAreYouSurePrompt = false;
+	GilCount = 0; // Remember to load this back in
 	//ShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("ShopComponent"));
 	//TestShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("TestShopComponent"));
 
@@ -519,6 +521,15 @@ int AFFCCCharacter::GetInventorySize() const
 void AFFCCCharacter::ShopUp()
 {
 	if (!bInAShop) return;
+	if (bShowAreYouSurePrompt)
+	{
+		AreYouSureIndex--;
+		if (AreYouSureIndex < 0)
+		{
+			AreYouSureIndex = MaxShopItemIndex - 1;
+		}
+		return;
+	}
 	ShopItemIndex--;
 
 	if (ShopItemIndex < 0)
@@ -566,6 +577,15 @@ void AFFCCCharacter::ShopDown()
 {
 	if (!bInAShop) return;
 
+	if (bShowAreYouSurePrompt)
+	{
+		AreYouSureIndex++;
+		if (AreYouSureIndex >= 2)
+		{
+			AreYouSureIndex = 0;
+		}
+		return;
+	}
 	ShopItemIndex++;
 
 	// IF YOU DONT HAVE ENOUGH ITEMS TO COVER ONE SCREEN
@@ -622,6 +642,15 @@ void AFFCCCharacter::ShopDown()
 				ShopItemIndex = 0;
 			}
 		}
+		//else if (bShowAreYouSurePrompt)
+		//{
+		//	if (ShopItemIndex >= 2)
+		//	{
+		//		ShopItemIndex = 0;
+		//	}
+		//	//ShopItemIndex = 1 - ShopItemIndex;
+		//	//ShopItemIndex = ShopItemIndex == 0 ? ShopItemIndex = 1 : ShopItemIndex = 0;
+		//}
 	
 
 
@@ -660,16 +689,68 @@ void AFFCCCharacter::ShopSelect()
 
 	UE_LOG(LogTemp, Warning, TEXT("ShopSelect"));
 
+	if (bShowPlayerStock)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InSellMenu"));
+		// If in merchant shop
+		// Menu scroll basically means you're selling items
+		if (bMenuScroll)
+		{
+			// bring up yes or no
+			if (!bShowAreYouSurePrompt)
+			{
+				// Dont bring up menu if you have no items
+				if (GetInventorySize() <= 0) return;
+
+				bShowAreYouSurePrompt = true;
+				MaxShopItemIndex = 2; // Are you sure - Yes or No
+				MerchantHierarchy++;
+				UE_LOG(LogTemp, Warning, TEXT("GoTo AreYouSure"));
+				return;
+			}
+			else if (bShowAreYouSurePrompt)
+			{
+				if (AreYouSureIndex == 0)
+				{
+					// Sell
+					if (!InventoryData) return;
+					UE_LOG(LogTemp, Warning, TEXT("BEFORE - Inventory Num: %d"), InventoryData->GetSize());
+					int SellPrice = InventoryData->RemoveItemAt(ShopItemIndex); // Put this in a function later on - SELL Logic
+																  // TODO: Add money to pocket
+					UE_LOG(LogTemp, Warning, TEXT("Removing Element: %d"), ShopItemIndex);
+					UE_LOG(LogTemp, Warning, TEXT("AFTER - Inventory Num: %d"), InventoryData->GetSize());
+					// Prevents Row Highlight Overflow
+					ShopItemIndex = ShopItemIndex - 1;
+					if (ShopItemIndex < 0) ShopItemIndex = 0;
+					// Add To money
+					GilCount += SellPrice;
+				}
+				else
+				{
+					// Dont Sell
+				}
+				// Close Menu
+				CloseMerchantShop();
+				return;
+			}
+
+		}
+	}
+
 	if (bShowMerchantShop)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("ShowMerchantShop"));
+
 		if (ShopItemIndex == 0)
 		{
 			// Buy
 			bShowMerchantShop = false;
 			bShowMerchantStock = true;
-			MaxShopItemIndex = GetMaxShopIndex();
+			MaxShopItemIndex = GetMaxShopIndex(); // Change this later on for unique merchants
 			MerchantHierarchy++;
 			bMenuScroll = false;
+			UE_LOG(LogTemp, Warning, TEXT("GoTo BuyMenu"));
+
 		}
 		else if (ShopItemIndex == 1)
 		{
@@ -680,6 +761,8 @@ void AFFCCCharacter::ShopSelect()
 			ShopItemIndex = 0;
 			MerchantHierarchy++;
 			bMenuScroll = true;
+			UE_LOG(LogTemp, Warning, TEXT("GoTo SellMenu"));
+
 		}
 	}
 	else if (bShowBlacksmithShop)
@@ -690,6 +773,8 @@ void AFFCCCharacter::ShopSelect()
 	{
 
 	}
+
+
 }
 
 void AFFCCCharacter::ShopBack()
@@ -779,8 +864,21 @@ void AFFCCCharacter::CloseMerchantShop()
 	{
 		// Buy and Sell menu, so since there is no menu further up this can be blank
 		// For the time being - will add a "how many to buy / sell " soon
-		
+		bShowAreYouSurePrompt = false;
+		AreYouSureIndex = 0;
+		MaxShopItemIndex = GetMaxShopIndex(); // hmm
+	//	if (ShopItemIndex >= MaxShopItemIndex) ShopItemIndex = ShopItemIndex - 1; // Retain position in inventory, unless you go out of bounds then go one up
+	//	if (ShopItemIndex < 0) ShopItemIndex = 0;
+		bShowMerchantShop = false;
+		// menu scroll player stock merchant stock hmm
+
+		// Needs more not sure which bits yet
+
 		//bMenuScroll = true; // If selling
+	}
+	else if (MerchantHierarchy == 3)
+	{
+		// Are yous ure prompt - no further menu so can be blank
 	}
 }
 
