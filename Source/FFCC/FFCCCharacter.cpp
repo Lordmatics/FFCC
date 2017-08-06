@@ -543,11 +543,18 @@ void AFFCCCharacter::ShopUp()
 		{
 			// Snap to Bottom
 			// IF YOU DONT HAVE ENOUGH ITEMS TO COVER ONE SCREEN
-			//if (GetInventorySize() <= MaxShopItemIndex)
-			//{
-			//	ShopItemIndex = GetInventorySize();
-			//	return;
-			//}
+			if (GetInventorySize() <= MaxShopItemIndex && bShowPlayerStock)
+			{
+				// If you have nothing in your inventory prevent going up
+				if (GetInventorySize() <= 0)
+				{
+					ShopItemIndex = 0;
+					return;
+				}
+				// Cursor goes to bottom
+				ShopItemIndex = GetInventorySize() - 1;
+				return;
+			}
 			ShopItemIndex = MaxShopItemIndex - 1;
 
 			//IndexForTopElementInPlayersInventory = 0;
@@ -561,42 +568,65 @@ void AFFCCCharacter::ShopDown()
 
 	ShopItemIndex++;
 
-
-	if (ShopItemIndex >= MaxShopItemIndex)
-	{
-		if (bMenuScroll && GetInventorySize() > MaxShopItemIndex)
-		{
-			// Stay at top index
-			ShopItemIndex = MaxShopItemIndex - 1;
-			// Push Elements Up
-			int TEMPInvSize = GetInventorySize();
-			//int BotIndex = IndexForTopElementInPlayersInventory > (MaxShopItemIndex - 1) ? IndexForTopElementInPlayersInventory - (MaxShopItemIndex - 1) : IndexForTopElementInPlayersInventory + (MaxShopItemIndex - 1);
-			//IndexForTopElementInPlayersInventory >= TEMPInvSize ? IndexForTopElementInPlayersInventory = 0 : IndexForTopElementInPlayersInventory += 1;
-
-			IndexForTopElementInPlayersInventory += 1;
-			if (IndexForTopElementInPlayersInventory >= TEMPInvSize)
-			{
-				IndexForTopElementInPlayersInventory = 0;
-			}
-
-			return;
-
-		}
-		else
-		{
-			// Snap to Top
-			ShopItemIndex = 0;
-			return;
-			//IndexForTopElementInPlayersInventory = 0;
-		}
-	}
-
 	// IF YOU DONT HAVE ENOUGH ITEMS TO COVER ONE SCREEN
-	//if (ShopItemIndex >= GetInventorySize())
-	//{
-	//	ShopItemIndex = 0;
-	//	return;
-	//}
+
+	int BottomIndex = GetInventorySize() <= MaxShopItemIndex ? GetInventorySize() - 1 : MaxShopItemIndex - 1;
+
+		if (ShopItemIndex >= MaxShopItemIndex)
+		{
+			if (bMenuScroll && GetInventorySize() > MaxShopItemIndex)
+			{
+				// Stay at top index
+				ShopItemIndex = MaxShopItemIndex - 1;
+				// Push Elements Up
+				int TEMPInvSize = GetInventorySize();
+				//int BotIndex = IndexForTopElementInPlayersInventory > (MaxShopItemIndex - 1) ? IndexForTopElementInPlayersInventory - (MaxShopItemIndex - 1) : IndexForTopElementInPlayersInventory + (MaxShopItemIndex - 1);
+				//IndexForTopElementInPlayersInventory >= TEMPInvSize ? IndexForTopElementInPlayersInventory = 0 : IndexForTopElementInPlayersInventory += 1;
+
+				IndexForTopElementInPlayersInventory += 1;
+				if (IndexForTopElementInPlayersInventory >= TEMPInvSize)
+				{
+					IndexForTopElementInPlayersInventory = 0;
+				}
+
+				return;
+
+			}
+			else
+			{
+				// Snap to Top
+				ShopItemIndex = 0;
+				return;
+				//IndexForTopElementInPlayersInventory = 0;
+			}
+		}
+		else if (ShopItemIndex > BottomIndex && bShowPlayerStock)
+		{
+			if (bMenuScroll && GetInventorySize() > MaxShopItemIndex)
+			{
+				// Stay at top index
+				ShopItemIndex = MaxShopItemIndex - 1;
+				// Push Elements Up
+				int TEMPInvSize = GetInventorySize();
+				//int BotIndex = IndexForTopElementInPlayersInventory > (MaxShopItemIndex - 1) ? IndexForTopElementInPlayersInventory - (MaxShopItemIndex - 1) : IndexForTopElementInPlayersInventory + (MaxShopItemIndex - 1);
+				//IndexForTopElementInPlayersInventory >= TEMPInvSize ? IndexForTopElementInPlayersInventory = 0 : IndexForTopElementInPlayersInventory += 1;
+
+				IndexForTopElementInPlayersInventory += 1;
+				if (IndexForTopElementInPlayersInventory >= TEMPInvSize)
+				{
+					IndexForTopElementInPlayersInventory = 0;
+				}
+			}
+			else
+			{
+				ShopItemIndex = 0;
+			}
+		}
+	
+
+
+
+
 }
 
 int AFFCCCharacter::GetMaxShopIndex() const
