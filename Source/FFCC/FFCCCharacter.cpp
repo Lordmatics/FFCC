@@ -19,6 +19,7 @@
 #include "FFCC/CustomComponents/Pickupables/PickupComponent.h"
 #include "FFCC/NPC/NPC.h"
 #include "FFCC/DataAssets/Merchant/Home/MerchShopDataAsset.h"
+#include "FFCC/DataAssets/Blacksmith/Home/BlacksmithShopDataAsset.h"
 #include "FFCC/DataAssets/Item/InventoryDataAsset.h"
 #include "FFCC/Items/Item.h"
 #include "FFCC/Debug/Logs.h"
@@ -82,11 +83,14 @@ AFFCCCharacter::AFFCCCharacter()
 	bInAShop = false;
 
 	bShowMerchantStock = false;
+	bShowBlacksmithStock = false;
 	bShowPlayerStock = false;
 	MerchantHierarchy = 0;
+	BlacksmithHierarchy = 0;
 
 	LookAtComp = CreateDefaultSubobject<ULookAtComponent>(TEXT("LookAtComponent"));
 	MerchantLevel = 1;
+	BlacksmithLevel = 1;
 	bMenuScroll = false;
 	IndexForTopElementInPlayersInventory = 0;
 
@@ -138,6 +142,13 @@ void AFFCCCharacter::UpgradeMerchantLevel()
 {
 	MerchantLevel++;
 	MaxShopItemIndex = GetMaxShopIndex();
+	// TEMP
+	UpgradeBlacksmithLevel();
+}
+
+void AFFCCCharacter::UpgradeBlacksmithLevel()
+{
+	BlacksmithLevel++;
 }
 
 void AFFCCCharacter::DebugSell()
@@ -317,6 +328,11 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 		{
 			CurrentShopData = MerchData;
 		}
+		UBlacksmithShopDataAsset* BlacksmithData = Cast<UBlacksmithShopDataAsset>(NPC->GetData());
+		if (BlacksmithData)
+		{
+			CurrentBlacksmithData = BlacksmithData;
+		}
 		//if (MerchData && ShopComponent)
 		//{
 		//	// Potential optimise here. Store locally, then push to UMG when enter shop.
@@ -329,6 +345,11 @@ void AFFCCCharacter::OnOverlapEnter(UPrimitiveComponent* OverlappedComp, AActor*
 UMerchShopDataAsset* AFFCCCharacter::GetMerchData() const
 {
 	return CurrentShopData;
+}
+
+UBlacksmithShopDataAsset* AFFCCCharacter::GetBlacksmithData() const
+{
+	return CurrentBlacksmithData;
 }
 
 void AFFCCCharacter::OnOverlapExit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherbodyIndex)
@@ -501,6 +522,7 @@ void AFFCCCharacter::OpenTailorShop()
 
 void AFFCCCharacter::OpenBlacksmithShop()
 {
+	BlacksmithHierarchy++;
 	bShowBlacksmithShop = true;
 	bInAShop = true;
 }
@@ -812,7 +834,34 @@ void AFFCCCharacter::ShopSelect()
 	}
 	else if (bShowBlacksmithShop)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("ShowBlacksmithShop"));
 
+		if (ShopItemIndex == 0)
+		{
+			// Craft
+			bShowBlacksmithShop = false;
+			bShowBlacksmithStock = true;
+			//MaxShopItemIndex = GetMaxShopIndex(); // Change this later on for unique merchants
+			BlacksmithHierarchy++;
+			//bMenuScroll = false;
+			bMenuScroll = true;
+			CachedBuySellIndex = 0;
+			UE_LOG(LogTemp, Warning, TEXT("GoTo CraftMenu"));
+
+		}
+		else if (ShopItemIndex == 1)
+		{
+			// Sell
+			bShowBlacksmithShop = false;
+			bShowPlayerStock = true; // Need to change this to only show recipes
+			MaxShopItemIndex = 17; // MAX ITEMS ON SCREEN
+			ShopItemIndex = 0;
+			BlacksmithHierarchy++;
+			bMenuScroll = true;
+			CachedBuySellIndex = 1;
+			UE_LOG(LogTemp, Warning, TEXT("GoTo SellMenu"));
+
+		}
 	}
 	else if (bShowTailorShop)
 	{
@@ -866,10 +915,13 @@ void AFFCCCharacter::MenuReset()
 	TradeFlags = Flags::E_Other;
 	bShowMerchantShop = false;
 	bShowMerchantStock = false;
+	bShowBlacksmithShop = false;
+	bShowBlacksmithStock = false;
 	bShowPlayerStock = false;
 
 	ShopItemIndex = 0;
 	MerchantHierarchy = 0;
+	BlacksmithHierarchy = 0;
 	IndexForTopElementInPlayersInventory = 0;
 	bMenuScroll = false;
 	CachedBuySellIndex = 0;
@@ -933,7 +985,56 @@ void AFFCCCharacter::CloseMerchantShop()
 
 void AFFCCCharacter::CloseBlacksmithShop()
 {
+	BlacksmithHierarchy--;
+	if (BlacksmithHierarchy <= 0)
+	{
+		InteractIndexInDialogue = 0;
+		//TradeFlags = Flags::E_Other;
+		bShowBlacksmithShop = false;
+		bShowBlacksmithStock = false;
+		bShowPlayerStock = false;
 
+		bShowChat = false;
+		bInAShop = false;
+
+		ShopItemIndex = 0;
+		BlacksmithHierarchy = 0;
+		bMenuScroll = false;
+		UE_LOG(LogTemp, Warning, TEXT("Back to no menu: %d"), BlacksmithHierarchy);
+	}
+	else if (BlacksmithHierarchy == 1)
+	{
+		// Menu to choose crafting or selling
+		//OpenMerchantShop();
+		bShowBlacksmithShop = true; // Show BUY SELL Menu
+		bInAShop = true; // Maybe redundant
+		bShowBlacksmithStock = false; // Hide List
+		bShowPlayerStock = false;
+		//ShopItemIndex = 0; // Change to cached index
+		ShopItemIndex = CachedBuySellIndex;
+
+		MaxShopItemIndex = 2; // 2 options { BUY , SELL }
+		bMenuScroll = false;
+	}
+	else if (BlacksmithHierarchy == 2)
+	{
+		// Craft and Sell menu
+		bShowAreYouSurePrompt = false;
+		AreYouSureIndex = 0;
+		MaxShopItemIndex = GetMaxShopIndex(); // hmm
+											  //	if (ShopItemIndex >= MaxShopItemIndex) ShopItemIndex = ShopItemIndex - 1; // Retain position in inventory, unless you go out of bounds then go one up
+											  //	if (ShopItemIndex < 0) ShopItemIndex = 0;
+		bShowBlacksmithShop = false;
+		// menu scroll player stock merchant stock hmm
+
+		// Needs more not sure which bits yet
+
+		//bMenuScroll = true; // If selling
+	}
+	else if (BlacksmithHierarchy == 3)
+	{
+		// Are yous ure prompt - no further menu so can be blank
+	}
 }
 
 void AFFCCCharacter::CloseTailorShop()

@@ -9,6 +9,15 @@
 #include "ItemTypeEnum.generated.h"
 
 UENUM(BlueprintType)
+enum class EBlacksmithType : uint8
+{
+	E_Weapon,
+	E_Armour,
+	E_Weapon_Armour,
+	E_MAX
+};
+
+UENUM(BlueprintType)
 enum class EWeaponScrolls : uint8
 {
 	E_CelestialWeapon,

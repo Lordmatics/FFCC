@@ -47,6 +47,9 @@ class AFFCCCharacter : public ACharacter
 		bool bShowMerchantStock;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		bool bShowBlacksmithStock;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
 		bool bShowPlayerStock;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
@@ -109,6 +112,9 @@ class AFFCCCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category = "Interact Target Debug")
 		class UMerchShopDataAsset* CurrentShopData;
 
+	UPROPERTY(EditAnywhere, Category = "Interact Target Debug")
+		class UBlacksmithShopDataAsset* CurrentBlacksmithData;
+
 	UPROPERTY(VisibleAnywhere, Category = "Interact Target Debug")
 		uint32 bInInteractRange : 1;
 
@@ -142,10 +148,16 @@ class AFFCCCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
 		int MerchantLevel;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
+		int BlacksmithLevel;
+
 	int GetMaxShopIndex() const;
 
 	UFUNCTION()
 		void UpgradeMerchantLevel();
+
+	UFUNCTION()
+		void UpgradeBlacksmithLevel();
 
 	UFUNCTION()
 		void DebugSell();
@@ -162,6 +174,7 @@ class AFFCCCharacter : public ACharacter
 	Flags TradeFlags;
 
 	int MerchantHierarchy;
+	int BlacksmithHierarchy;
 	void MenuReset();
 
 public:
@@ -189,6 +202,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Items")
 		class UMerchShopDataAsset* GetMerchData() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Items")
+		class UBlacksmithShopDataAsset* GetBlacksmithData() const;
 
 	//class FStreamableManager AssetLoader;
 	//UFUNCTION()
@@ -235,6 +251,7 @@ public:
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
 			int GetInventorySize() const;
 
+		// MERCHANT
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
 			FString GetMerchNameAtRow(int Row);
 
@@ -247,8 +264,8 @@ public:
 		UFUNCTION(BlueprintCallable, Category = "Inventory")
 			class UTexture2D* GetMerchIconAtRow(int Row);
 
-		private:
-			UPROPERTY(EditAnywhere, Category = "Invalid")
-				class UTexture2D* InvalidTexture;
+	private:
+		UPROPERTY(EditAnywhere, Category = "Invalid")
+			class UTexture2D* InvalidTexture;
 };
 
