@@ -5,14 +5,14 @@
 #include "FFCC/Items/ItemTypeEnum.h"
 #include "Classes/Engine/Texture2D.h"
 
-UTexture2D* UMerchShopDataAsset::GetItemIconAt(int Index)
-{
-	if (Index < MerchantShopList.Num())
-	{
-		return MerchantShopList[Index].ItemIcon;
-	}
-	return nullptr;
-}
+//UTexture2D* UMerchShopDataAsset::GetItemIconAt(int Index)
+//{
+//	if (Index < MerchantShopList.Num())
+//	{
+//		return MerchantShopList[Index].ItemIcon;
+//	}
+//	return nullptr;
+//}
 
 UItemDataAsset* UMerchShopDataAsset::GetItemDataAtIndex(int Index)
 {

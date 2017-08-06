@@ -60,7 +60,7 @@ void ANPC::LookAtTarget(float DeltaTime)
 				FRotator MyRot = GetActorRotation();
 				FRotator NewRot; LookAtComp->GetRotationToLookAt(GetActorLocation(), LookAtComp->GetLookAtTarget()->GetActorLocation(), NewRot);
 				MyRot = FMath::RInterpTo(MyRot, NewRot, DeltaTime, InterpSpeed);
-				SetActorRotation(MyRot);
+				SetActorRotation(MyRot, ETeleportType::TeleportPhysics);
 			}
 		}
 	}

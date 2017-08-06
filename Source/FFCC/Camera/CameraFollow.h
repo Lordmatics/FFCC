@@ -26,9 +26,9 @@ struct FCameraBoundaries
 	FCameraBoundaries()
 	{
 		Min_X = -1000.0f;
-		Max_X = -800.0f;
+		Max_X = -1000.0f;
 		Min_Y = 400.0f;
-		Max_Y = 600.0f;
+		Max_Y = 800.0f;
 	}
 
 };

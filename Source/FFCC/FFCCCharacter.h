@@ -32,6 +32,8 @@ class AFFCCCharacter : public ACharacter
 	UFUNCTION()
 		void BeginInteract();
 
+	int CachedBuySellIndex;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop", meta = (AllowPrivateAccess = "true"))
 		int ShopItemIndex;
 

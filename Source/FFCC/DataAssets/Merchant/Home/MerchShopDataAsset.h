@@ -12,17 +12,17 @@ struct FShopData
 
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item Name"))
-		FString ItemName;
+	//UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item Name"))
+	//	FString ItemName;
 
-	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item BUY"))
-		int ItemBuyPrice;
+	//UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item BUY"))
+	//	int ItemBuyPrice;
 
-	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item SELL"))
-		int ItemSellPrice;
+	//UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item SELL"))
+	//	int ItemSellPrice;
 
-	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item IMAGE"))
-		class UTexture2D* ItemIcon;
+	//UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item IMAGE"))
+	//	class UTexture2D* ItemIcon;
 
 	UPROPERTY(EditAnywhere, Category = "Shop", meta = (ToolTip = "The Item Data"))
 		class UItemDataAsset* ItemData;
@@ -30,10 +30,10 @@ struct FShopData
 	/** Default Constructor*/
 	FShopData()
 	{
-		ItemName = "";
-		ItemBuyPrice = 0;
-		ItemSellPrice = 0;
-		ItemIcon = nullptr;
+		//ItemName = "";
+		//ItemBuyPrice = 0;
+		//ItemSellPrice = 0;
+		//ItemIcon = nullptr;
 		ItemData = nullptr;
 	}
 };
@@ -62,7 +62,7 @@ public:
 	int GetSellValueAt(int Index);
 	int GetBuyValueAt(int Index);
 
-	class UTexture2D* GetItemIconAt(int Index);
+	//class UTexture2D* GetItemIconAt(int Index);
 	class UItemDataAsset* GetItemDataAtIndex(int Index);
 	struct FItemData GetItemDataAt(int Index);
 	

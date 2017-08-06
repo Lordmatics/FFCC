@@ -24,7 +24,7 @@ ACameraFollow::ACameraFollow()
 
 	xOffset = -100.0f;
 	yOffset = -300.0f;
-	zOffset = 500.0f;
+	zOffset = 750.0f;
 
 	// YRot - 40.0f;
 

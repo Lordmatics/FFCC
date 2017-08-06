@@ -92,6 +92,7 @@ AFFCCCharacter::AFFCCCharacter()
 
 	bShowAreYouSurePrompt = false;
 	GilCount = 999999; // Remember to load this back in
+	CachedBuySellIndex = 0;
 	//ShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("ShopComponent"));
 	//TestShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("TestShopComponent"));
 
@@ -368,7 +369,7 @@ void AFFCCCharacter::BeginInteract()
 		//while (CurRot != NewRotation)
 		//{
 			//CurRot = FMath::RInterpTo(CurRot, NewRotation, GetWorld()->GetDeltaSeconds(), 5.0f);
-			SetActorRotation(NewRotation);
+		SetActorRotation(NewRotation, ETeleportType::TeleportPhysics);
 		//}
 	}
 
@@ -791,6 +792,7 @@ void AFFCCCharacter::ShopSelect()
 			MaxShopItemIndex = GetMaxShopIndex(); // Change this later on for unique merchants
 			MerchantHierarchy++;
 			bMenuScroll = false;
+			CachedBuySellIndex = 0;
 			UE_LOG(LogTemp, Warning, TEXT("GoTo BuyMenu"));
 
 		}
@@ -803,6 +805,7 @@ void AFFCCCharacter::ShopSelect()
 			ShopItemIndex = 0;
 			MerchantHierarchy++;
 			bMenuScroll = true;
+			CachedBuySellIndex = 1;
 			UE_LOG(LogTemp, Warning, TEXT("GoTo SellMenu"));
 
 		}
@@ -826,6 +829,7 @@ void AFFCCCharacter::ShopBack()
 	case Flags::E_Merchant:
 		{
 			CloseMerchantShop();
+			UE_LOG(LogTemp, Warning, TEXT("CloseMerchantShop"));
 			break;
 		}
 	case Flags::E_Blacksmith:
@@ -868,13 +872,14 @@ void AFFCCCharacter::MenuReset()
 	MerchantHierarchy = 0;
 	IndexForTopElementInPlayersInventory = 0;
 	bMenuScroll = false;
+	CachedBuySellIndex = 0;
 	
 }
 
 void AFFCCCharacter::CloseMerchantShop()
 {
 	MerchantHierarchy--;
-	if (MerchantHierarchy == 0)
+	if (MerchantHierarchy <= 0)
 	{
 		InteractIndexInDialogue = 0;
 		//TradeFlags = Flags::E_Other;
@@ -898,7 +903,9 @@ void AFFCCCharacter::CloseMerchantShop()
 		bInAShop = true; // Maybe redundant
 		bShowMerchantStock = false; // Hide List
 		bShowPlayerStock = false;
-		ShopItemIndex = 0;
+		//ShopItemIndex = 0; // Change to cached index
+		ShopItemIndex = CachedBuySellIndex;
+		
 		MaxShopItemIndex = 2; // 2 options { BUY , SELL }
 		bMenuScroll = false;
 	}
@@ -1003,7 +1010,8 @@ FString AFFCCCharacter::GetMerchNameAtRow(int Row)
 	if (!CurrentShopData) return ReturnValue;
 	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
 	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
-	ReturnValue = CurrentShopData->GetShopData()[Row].ItemName;
+	ReturnValue = CurrentShopData->GetNameAt(Row);
+	//ReturnValue = CurrentShopData->GetShopData()[Row].ItemName;
 	return ReturnValue;
 	//if (CurrentShopData && CurrentShopData->GetItemDataAtIndex(Row))
 	//{
@@ -1021,7 +1029,8 @@ int AFFCCCharacter::GetMerchBuyAtRow(int Row)
 	if (!CurrentShopData) return ReturnValue;
 	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
 	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
-	ReturnValue = CurrentShopData->GetShopData()[Row].ItemBuyPrice;
+	ReturnValue = CurrentShopData->GetBuyValueAt(Row);
+//	ReturnValue = CurrentShopData->GetShopData()[Row].ItemBuyPrice;
 	return ReturnValue;
 	//if (CurrentShopData == nullptr) return 0;
 	//if (Row > CurrentShopData->GetShopData().Num() - 1) return 0;
@@ -1034,7 +1043,8 @@ int AFFCCCharacter::GetMerchSellAtRow(int Row)
 	if (!CurrentShopData) return ReturnValue;
 	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
 	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
-	ReturnValue = CurrentShopData->GetShopData()[Row].ItemSellPrice;
+	ReturnValue = CurrentShopData->GetSellValueAt(Row);
+	//ReturnValue = CurrentShopData->GetShopData()[Row].ItemSellPrice;
 	return ReturnValue;
 	//if (CurrentShopData == nullptr) return 0;
 
@@ -1064,7 +1074,7 @@ UTexture2D* AFFCCCharacter::GetMerchIconAtRow(int Row)
 	if (!CurrentShopData) return ReturnValue;
 	if (CurrentShopData->GetShopData().Num() == 0) return ReturnValue;
 	if (Row > CurrentShopData->GetShopData().Num() - 1) return ReturnValue;
-	ReturnValue = CurrentShopData->GetItemIconAt(Row);
+	ReturnValue = CurrentShopData->GetIconAt(Row);
 	//if (ReturnValue.IsPending())
 	//{
 		//TArray<FAssetData> AssetDatas;
