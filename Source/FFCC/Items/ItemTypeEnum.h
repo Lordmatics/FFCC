@@ -435,8 +435,8 @@ struct FItemData : public FTableRowBase
 		FoodType = Other.FoodType;
 		MaterialType = Other.MaterialType;
 		ItemName = Other.ItemName;
-		ItemSellValue = Other.ItemBuyValue;
-		ItemBuyValue = Other.ItemSellValue;
+		ItemSellValue = Other.ItemSellValue;
+		ItemBuyValue = Other.ItemBuyValue;
 		LookUpIndex = 0;
 		ItemIcon = Other.ItemIcon;
 	}

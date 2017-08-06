@@ -91,7 +91,7 @@ AFFCCCharacter::AFFCCCharacter()
 	IndexForTopElementInPlayersInventory = 0;
 
 	bShowAreYouSurePrompt = false;
-	GilCount = 0; // Remember to load this back in
+	GilCount = 999999; // Remember to load this back in
 	//ShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("ShopComponent"));
 	//TestShopComponent = CreateDefaultSubobject<UShopComponent>(TEXT("TestShopComponent"));
 
@@ -734,6 +734,48 @@ void AFFCCCharacter::ShopSelect()
 				return;
 			}
 
+		}
+	}
+
+	if (bShowMerchantStock)
+	{
+		// bring up yes or no
+		if (!bShowAreYouSurePrompt)
+		{
+			// Dont bring up menu if you have no items
+			//if (GetInventorySize() <= 0) return;
+
+			bShowAreYouSurePrompt = true;
+			MaxShopItemIndex = 2; // Are you sure - Yes or No
+			MerchantHierarchy++;
+			UE_LOG(LogTemp, Warning, TEXT("GoTo AreYouSure"));
+			return;
+		}
+		else if (bShowAreYouSurePrompt)
+		{
+			if (AreYouSureIndex == 0)
+			{
+				// Buy
+				if (!CurrentShopData) return;
+				int BuyPrice = CurrentShopData->GetBuyValueAt(ShopItemIndex);
+					//CurrentShopData->GetShopData()[ShopItemIndex].ItemBuyPrice;		 // Put this in a function later on - SELL Logic
+								// TODO: Add money to pocket
+				if (BuyPrice != -1 && BuyPrice <= GilCount)
+				{
+					// Can be purchased
+					GilCount -= BuyPrice;
+					InventoryData->AddItem(CurrentShopData->GetItemDataAt(ShopItemIndex)); // This could potentially need checks against FItemData Def Const
+				}
+				// Add To money
+			//	GilCount += SellPrice;
+			}
+			else
+			{
+				// Dont Buy
+			}
+			// Close Menu
+			CloseMerchantShop();
+			return;
 		}
 	}
 

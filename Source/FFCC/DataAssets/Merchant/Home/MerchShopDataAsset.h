@@ -56,7 +56,14 @@ public:
 
 	FORCEINLINE TArray<FShopData> GetShopData() const { return MerchantShopList; }
 
+
+	class UTexture2D* GetIconAt(int Index);
+	FString GetNameAt(int Index);
+	int GetSellValueAt(int Index);
+	int GetBuyValueAt(int Index);
+
 	class UTexture2D* GetItemIconAt(int Index);
 	class UItemDataAsset* GetItemDataAtIndex(int Index);
+	struct FItemData GetItemDataAt(int Index);
 	
 };
