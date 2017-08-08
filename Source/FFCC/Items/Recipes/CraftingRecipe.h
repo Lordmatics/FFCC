@@ -20,8 +20,8 @@ private:
 public:
 	ACraftingRecipe();
 
-	//UPROPERTY(EditAnywhere, Category = "Item")
-	//	EFoodType FoodType;
+	UPROPERTY(EditAnywhere, Category = "Item")
+		EBlacksmithType CraftType;
 
 protected:
 	virtual void PostInitializeComponents() override;

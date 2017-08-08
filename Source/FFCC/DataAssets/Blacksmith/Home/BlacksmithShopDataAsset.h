@@ -40,6 +40,12 @@ struct FCraftEquipmentData
 		BlacksmithType = EBlacksmithType::E_Weapon_Armour;
 		ItemData = nullptr;
 	}
+
+	FCraftEquipmentData(EBlacksmithType Type, class UItemDataAsset* Data)
+	{
+		BlacksmithType = Type;
+		ItemData = Data;
+	}
 };
 /**
  * 
@@ -58,6 +64,7 @@ public:
 
 	FORCEINLINE TArray<FCraftEquipmentData> GetShopData() const { return BlacksmithShopList; }
 
+	void AddRecipe(const FCraftEquipmentData& CraftData);
 
 	class UTexture2D* GetIconAt(int Index);
 	FString GetNameAt(int Index);
@@ -68,5 +75,7 @@ public:
 	class UItemDataAsset* GetItemDataAtIndex(int Index);
 	struct FItemData GetItemDataAt(int Index);
 	
+	void ClearInventory();
+
 	
 };

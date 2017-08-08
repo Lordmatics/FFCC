@@ -22,6 +22,8 @@
 #include "FFCC/DataAssets/Blacksmith/Home/BlacksmithShopDataAsset.h"
 #include "FFCC/DataAssets/Item/InventoryDataAsset.h"
 #include "FFCC/Items/Item.h"
+#include "FFCC/Items/Recipes/CraftingRecipe.h"
+#include "FFCC/DataAssets/Blacksmith/Home/BlacksmithShopDataAsset.h"
 #include "FFCC/Debug/Logs.h"
 
 //#include "Runtime/Engine/Classes/Engine/StreamableManager.h"
@@ -130,6 +132,11 @@ void AFFCCCharacter::BeginPlay()
 		// Load Saved Data to restock inventory
 	}
 
+	if (CurrentBlacksmithData)
+	{
+		CurrentBlacksmithData->ClearInventory();
+		// Load Saved Data to restock inventory
+	}
 	//UE_LOG(GenLog, Warning, TEXT("GenLog"));
 	//UE_LOG(AILog, Warning, TEXT("AILog"));
 	//UE_LOG(PlayerLog, Warning, TEXT("PlayerLog"));
@@ -408,6 +415,13 @@ void AFFCCCharacter::BeginInteract()
 		AItem* Item = Cast<AItem>(CurrentTargetActor);
 		if (Item && InventoryData)
 		{
+			ACraftingRecipe* Recipe = Cast<ACraftingRecipe>(Item);
+			if (Recipe && CurrentBlacksmithData && Item->ItemDataAsset)
+			{
+				FCraftEquipmentData Data = FCraftEquipmentData(Recipe->CraftType, Item->ItemDataAsset);
+				CurrentBlacksmithData->AddRecipe(Data);
+				//InventoryData->
+			}
 			// If Inventory full -> Branch to lift not pick n destroy
 			InventoryData->AddItem(Item->GetItemData());
 

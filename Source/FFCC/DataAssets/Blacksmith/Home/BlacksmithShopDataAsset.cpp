@@ -60,3 +60,20 @@ int UBlacksmithShopDataAsset::GetBuyValueAt(int Index)
 	FItemData Data = GetItemDataAt(Index);
 	return Data.ItemBuyValue;
 }
+
+void UBlacksmithShopDataAsset::AddRecipe(const FCraftEquipmentData& CraftData)
+{
+	//if (BlacksmithShopList != nullptr)
+	//{
+		FCraftEquipmentData temp = CraftData;
+		BlacksmithShopList.Add(temp);
+	//}
+}
+
+void UBlacksmithShopDataAsset::ClearInventory()
+{
+	while (BlacksmithShopList.Num() != 0)
+	{
+		BlacksmithShopList.RemoveAt(0);
+	}
+}

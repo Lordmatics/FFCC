@@ -8,3 +8,7 @@ UDataAsset* ANPCBlacksmith::GetData()
 	return BlacksmithShopData ? BlacksmithShopData : Super::GetData();
 }
 
+EBlacksmithType ANPCBlacksmith::GetBlacksmithType() const
+{
+	return BlacksmithType;
+}
